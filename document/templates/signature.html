@@ -13,10 +13,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-    <link rel="stylesheet" href="{% static 'css/signature-pad.css' %}">
+    <link rel="stylesheet" href="{% static 'document/static/css/signature-pad.css' %}">
 
     <!--[if IE]>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/ie9.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'document/static/css/ie9.css' %}">
     <![endif]-->
 
 </head>
@@ -59,7 +59,7 @@
     var contentId = '{{ content_id }}';
     var signatureKey = '{{ signature_key }}';
 </script>
-<script src="{% static 'js/signature_pad.umd.js' %}"></script>
-<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'document/static/js/signature_pad.umd.js' %}"></script>
+<script src="{% static 'document/static/js/app.js' %}"></script>
 </body>
 </html>
