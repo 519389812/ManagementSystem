@@ -3,7 +3,7 @@ from user.models import User
 
 
 class Team(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(length=50, primary_key=True)
     name = models.CharField(max_length=20, unique=True, verbose_name="组名")
     user = models.ManyToManyField(User, related_name="user", default=None, blank=True, verbose_name="成员")
 
