@@ -11,11 +11,11 @@ import datetime
 from PIL import Image
 
 
-source_dir = os.path.join(os.getcwd(), "document/static/document/docs/source/")
-templates_dir = os.path.join(os.getcwd(), "document/static/document/docs/templates/")
-storage_dir = os.path.join(os.getcwd(), "document/storage/")
-temporary_dir = os.path.join(os.getcwd(), "document/temporary/")
-translate_dir = os.path.join(os.getcwd(), "document/static/document/docs/translate/")
+source_dir = os.path.join(os.getcwd(), "ManagementSystem/document/static/document/docs/source/")
+templates_dir = os.path.join(os.getcwd(), "ManagementSystem/document/static/document/docs/templates/")
+storage_dir = os.path.join(os.getcwd(), "ManagementSystem/document/storage/")
+temporary_dir = os.path.join(os.getcwd(), "ManagementSystem/document/temporary/")
+translate_dir = os.path.join(os.getcwd(), "ManagementSystem/document/static/document/docs/translate/")
 translate_file_name = "translate.json"
 translate_path = os.path.join(translate_dir, translate_file_name)
 
