@@ -30,7 +30,7 @@ SECRET_KEY = '0ck22$3ds26!7g$qk@q@w(r#tpqa$5acf7x7)$5p1ra2e798r0'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['username.pythonanywhere.com']
+ALLOWED_HOSTS = ['teamwork.pythonanywhere.com']
 
 
 # Application definition
