@@ -3,7 +3,7 @@ from user.models import User
 
 
 class DocxInit(models.Model):
-    id = models.TextField(max_length=50, primary_key=True)
+    id = models.CharField(max_length=8, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="创建人")
     template_name = models.CharField(max_length=30, verbose_name="模板名")
     docx_name = models.CharField(max_length=30, verbose_name="文档名")
@@ -22,7 +22,7 @@ class DocxInit(models.Model):
 
 
 class ContentStorage(models.Model):
-    id = models.TextField(max_length=50, primary_key=True)
+    id = models.CharField(max_length=17, primary_key=True)
     docx = models.ForeignKey(DocxInit, on_delete=models.DO_NOTHING, verbose_name="模板")
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="填写人")
     content = models.TextField(max_length=500, verbose_name="内容")
@@ -39,7 +39,7 @@ class ContentStorage(models.Model):
 
 
 class SignatureStorage(models.Model):
-    id = models.TextField(max_length=50, primary_key=True)
+    id = models.CharField(max_length=17, primary_key=True)
     docx = models.ForeignKey(DocxInit, on_delete=models.DO_NOTHING, verbose_name="模板")
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="填写人")
     content = models.TextField(max_length=500, verbose_name="内容")
