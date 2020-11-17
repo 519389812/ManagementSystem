@@ -13,7 +13,7 @@ from django.utils import timezone
 from ManagementSystem.settings import TIME_ZONE
 from user.views import check_authority
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
-# from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 import zipfile
 import pandas as pd
 import numpy as np
@@ -255,6 +255,7 @@ def fill_docx(request, docx_id, need_signature):
         return render(request, "error_400.html", status=400)
 
 
+@csrf_exempt
 @check_authority
 def fill_signature(request):
     if request.method == "POST":
@@ -291,6 +292,7 @@ def supervise_docx(request):
         return render(request, "error_400.html", status=400)
 
 
+@csrf_exempt
 @check_authority
 def supervisor_signature(request):
     if request.method == "POST":
