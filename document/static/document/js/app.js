@@ -121,7 +121,7 @@ savePNGButton.addEventListener("click", function (event) {
         "docx_id": docxId,
         "content_id": contentId,
       });
-      xhr.open('post','/document/fill_signature/', true);
+      xhr.open('post','http://teamwork.pythonanywhere.com/document/fill_signature/', false);
     } else {
       var jsonData = JSON.stringify({
         "docx_id": docxId,
