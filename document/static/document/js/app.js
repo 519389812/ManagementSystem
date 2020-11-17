@@ -122,14 +122,14 @@ savePNGButton.addEventListener("click", function (event) {
         "docx_id": docxId,
         "content_id": contentId,
       });
-      xhr.open('post','/document/fill_signature', true);
+      xhr.open('post','/document/fill_signature/', true);
     } else {
       var jsonData = JSON.stringify({
         "data": dataURL,
         "docx_id": docxId,
         "signature_key": signatureKey,
       });
-      xhr.open('post','/document/supervisor_signature', true);
+      xhr.open('post','/document/supervisor_signature/', true);
     }
     xhr.setRequestHeader('Content-type', 'application/json');
     xhr.setRequestHeader("X-CSRFToken", cxck);
