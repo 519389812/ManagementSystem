@@ -116,15 +116,14 @@ savePNGButton.addEventListener("click", function (event) {
     var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var xhr=new XMLHttpRequest();
     var cxck = getCookie("csrftoken");
+    var formData = new FormData();
     if (contentId!="") {
-      xhr.open('post','/document/fill_signature/', true);
-      var formData = new FormData();
+      xhr.open('post','/document/fill_signature/', false);
       formData.append("data", docxId);
       formData.append("docx_id", docxId);
       formData.append("content_id", contentId);
     } else {
-      xhr.open('post','/document/supervisor_signature/', true);
-      var formData = new FormData();
+      xhr.open('post','/document/supervisor_signature/', false);
       formData.append("data", docxId);
       formData.append("docx_id", docxId);
       formData.append("signature_key", signatureKey);
