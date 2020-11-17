@@ -115,18 +115,19 @@ savePNGButton.addEventListener("click", function (event) {
   } else {
     var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var xhr=new XMLHttpRequest();
-    var formData = new FormData();
     var cxck = getCookie("csrftoken");
     if (contentId!="") {
+      xhr.open('post','/document/fill_signature/', true);
+      var formData = new FormData();
       formData.append("data", docxId);
       formData.append("docx_id", docxId);
       formData.append("content_id", contentId);
-      xhr.open('post','/document/fill_signature/', true);
     } else {
+      xhr.open('post','/document/supervisor_signature/', true);
+      var formData = new FormData();
       formData.append("data", docxId);
       formData.append("docx_id", docxId);
       formData.append("signature_key", signatureKey);
-      xhr.open('post','/document/supervisor_signature/', true);
     }
     xhr.setRequestHeader("X-CSRFToken", cxck);
     xhr.send(formData);
