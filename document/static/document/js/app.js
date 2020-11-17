@@ -97,12 +97,25 @@ changeColorButton.addEventListener("click", function (event) {
   signaturePad.penColor = color;
 });
 
+function getCookie(name){
+  var strcookie = document.cookie;
+  var arrcookie = strcookie.split("; ");
+  for ( var i = 0; i < arrcookie.length; i++) {
+    var arr = arrcookie[i].split("=");
+    if (arr[0] == name){
+      return arr[1];
+    }
+  }
+  return "";
+  }
+
 savePNGButton.addEventListener("click", function (event) {
   if (signaturePad.isEmpty()) {
     alert("Please provide a signature first.");
   } else {
     var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var xhr=new XMLHttpRequest();
+    var cxck = getCookie("csrftoken");
     if (contentId!="") {
       var data='data='+dataURL+'&docx_id='+docxId+'&content_id='+contentId;
       xhr.open('post','/document/fill_signature/', true);
@@ -111,6 +124,7 @@ savePNGButton.addEventListener("click", function (event) {
       xhr.open('post','/document/supervisor_signature/', true);
     }
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader("X-CSRFToken", cxck);
     xhr.send(data);
     alert("签名成功！");
     window.location.href = "/document/view_docx/" + docxId;
