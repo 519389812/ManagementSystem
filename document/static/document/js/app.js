@@ -117,10 +117,10 @@ savePNGButton.addEventListener("click", function (event) {
     var xhr=new XMLHttpRequest();
     var cxck = getCookie("csrftoken");
     if (contentId!="") {
-      var data='data='+dataURL+'&docx_id='+docxId+'&content_id='+contentId;
+      var data='&docx_id='+docxId+'&content_id='+contentId;
       xhr.open('post','/document/fill_signature/', true);
     } else {
-      var data='data='+dataURL+'&docx_id='+docxId+'&signature_key='+signatureKey;
+      var data='&docx_id='+docxId+'&signature_key='+signatureKey;
       xhr.open('post','/document/supervisor_signature/', true);
     }
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
