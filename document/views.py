@@ -255,7 +255,6 @@ def fill_docx(request, docx_id, need_signature):
         return render(request, "error_400.html", status=400)
 
 
-@csrf_exempt
 @check_authority
 def fill_signature(request):
     if request.method == "POST":
@@ -292,7 +291,6 @@ def supervise_docx(request):
         return render(request, "error_400.html", status=400)
 
 
-@csrf_exempt
 @check_authority
 def supervisor_signature(request):
     if request.method == "POST":
