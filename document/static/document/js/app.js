@@ -104,13 +104,15 @@ savePNGButton.addEventListener("click", function (event) {
     var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var xhr=new XMLHttpRequest();
     if (contentId!="") {
-      xhr.open('get','/document/fill_signature/?data=' + dataURL + '&docx_id=' + docxId + '&content_id=' + contentId);
+      var data='data='+dataURL+'&docx_id='+docxId+'&content_id='+contentId;
     } else {
-      xhr.open('get','/document/supervisor_signature/?data=' + dataURL + '&docx_id=' + docxId + '&signature_key=' + signatureKey);
+      var data='data='+dataURL+'&docx_id='+docxId+'&signature_key='+signatureKey;
     }
-    xhr.send();
+    xhr.open('post','/document/supervisor_signature/', true);
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhr.send(data);
     alert("签名成功！");
-    window.location.href = "/document/view_docx/" + docxId
+    window.location.href = "/document/view_docx/" + docxId;
   }
 });
 //
