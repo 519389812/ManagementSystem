@@ -257,15 +257,22 @@ def fill_docx(request, docx_id, need_signature):
 
 @check_authority
 def fill_signature(request):
+    print(request.method)
     if request.method == "POST":
+        print(1)
         docx_id = request.POST.get("docx_id")
         try:
             docx_object = DocxInit.objects.get(id=docx_id)
+            print(2)
         except:
+            print(3)
             return render(request, "error_docx_missing.html", status=403)
         if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
+            print(4)
             return render(request, "error_docx_closed.html", status=403)
+        print(5)
         signature_data = parse.unquote(request.POST.get("data"))
+        print(6)
         ContentStorage.objects.filter(id=docx_id + '_' + request.POST.get("content_id")).update(signature=signature_data)
         return redirect(reverse("view_docx", args=[docx_id]))
     else:
