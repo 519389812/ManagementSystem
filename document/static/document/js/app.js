@@ -105,10 +105,11 @@ savePNGButton.addEventListener("click", function (event) {
     var xhr=new XMLHttpRequest();
     if (contentId!="") {
       var data='data='+dataURL+'&docx_id='+docxId+'&content_id='+contentId;
+      xhr.open('post','/document/fill_signature/', true);
     } else {
       var data='data='+dataURL+'&docx_id='+docxId+'&signature_key='+signatureKey;
+      xhr.open('post','/document/supervisor_signature/', true);
     }
-    xhr.open('post','/document/supervisor_signature/', true);
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhr.send(data);
     alert("签名成功！");
