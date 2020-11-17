@@ -257,7 +257,7 @@ def fill_docx(request, docx_id, need_signature):
 
 @check_authority
 def fill_signature(request):
-    if request.method == "GET":
+    if request.method == "POST":
         request_data = json.loads(request.body)
         try:
             docx_id = request_data["docx_id"]
@@ -293,7 +293,7 @@ def supervise_docx(request):
 
 @check_authority
 def supervisor_signature(request):
-    if request.method == "GET":
+    if request.method == "POST":
         request_data = json.loads(request.body)
         try:
             docx_id = request_data["docx_id"]
