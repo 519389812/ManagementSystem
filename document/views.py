@@ -257,16 +257,19 @@ def fill_docx(request, docx_id, need_signature):
 
 @check_authority
 def fill_signature(request):
-    docx_id = request.POST.get("docx_id")
-    try:
-        docx_object = DocxInit.objects.get(id=docx_id)
-    except:
-        return render(request, "error_docx_missing.html", status=403)
-    if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
-        return render(request, "error_docx_closed.html", status=403)
-    signature_data = parse.unquote(request.POST.get("data"))
-    ContentStorage.objects.filter(id=docx_id + '_' + request.POST.get("content_id")).update(signature=signature_data)
-    return redirect(reverse("view_docx", args=[docx_id]))
+    if request.method == "POST":
+        docx_id = request.POST.get("docx_id")
+        try:
+            docx_object = DocxInit.objects.get(id=docx_id)
+        except:
+            return render(request, "error_docx_missing.html", status=403)
+        if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
+            return render(request, "error_docx_closed.html", status=403)
+        signature_data = parse.unquote(request.POST.get("data"))
+        ContentStorage.objects.filter(id=docx_id + '_' + request.POST.get("content_id")).update(signature=signature_data)
+        return redirect(reverse("view_docx", args=[docx_id]))
+    else:
+        return render(request, "error_400.html", status=400)
 
 
 @check_authority
