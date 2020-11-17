@@ -116,22 +116,16 @@ savePNGButton.addEventListener("click", function (event) {
     var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var xhr=new XMLHttpRequest();
     var cxck = getCookie("csrftoken");
-    var formData = new FormData();
     if (contentId!="") {
+      var data='data='+dataURL+'&docx_id='+docxId+'&content_id='+contentId;
       xhr.open('post','/document/fill_signature/', true);
-      formData.append("data", docxId);
-      formData.append("docx_id", docxId);
-      formData.append("content_id", contentId);
     } else {
+      var data='data='+dataURL+'&docx_id='+docxId+'&signature_key='+signatureKey;
       xhr.open('post','/document/supervisor_signature/', true);
-      formData.append("data", docxId);
-      formData.append("docx_id", docxId);
-      formData.append("signature_key", signatureKey);
     }
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhr.setRequestHeader("X-CSRFToken", cxck);
-    xhr.send(formData);
+    xhr.send(data);
     alert("签名成功！");
     window.location.href = "/document/view_docx/" + docxId;
   }
