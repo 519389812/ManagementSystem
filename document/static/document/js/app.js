@@ -115,21 +115,17 @@ savePNGButton.addEventListener("click", function (event) {
   } else {
     var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var xhr=new XMLHttpRequest();
-    var formData = new FormData();
     var cxck = getCookie("csrftoken");
     if (contentId!="") {
-      formData.append("data", dataURL);
-      formData.append("docx_id", docxId);
-      formData.append("content_id", contentId);
+      var data='data='+dataURL+'&docx_id='+docxId+'&content_id='+contentId;
       xhr.open('post','/document/fill_signature/', true);
     } else {
-      formData.append("data", dataURL);
-      formData.append("docx_id", docxId);
-      formData.append("signature_key", signatureKey);
+      var data='data='+dataURL+'&docx_id='+docxId+'&signature_key='+signatureKey;
       xhr.open('post','/document/supervisor_signature/', true);
     }
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhr.setRequestHeader("X-CSRFToken", cxck);
-    xhr.send(formData);
+    xhr.send(data);
     alert("签名成功！");
     window.location.href = "/document/view_docx/" + docxId;
   }

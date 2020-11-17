@@ -265,7 +265,7 @@ def fill_signature(request):
             return render(request, "error_docx_missing.html", status=403)
         if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_closed.html", status=403)
-        signature_data = parse.unquote(request.POST.get("data"))
+        signature_data = parse.unquote(request.FILE.get("data"))
         ContentStorage.objects.filter(id=docx_id + '_' + request.POST.get("content_id")).update(signature=signature_data)
         return redirect(reverse("view_docx", args=[docx_id]))
     else:
