@@ -24,13 +24,13 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 SECRET_KEY = '0ck22$3ds26!7g$qk@q@w(r#tpqa$5acf7x7)$5p1ra2e798r0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+# DEBUG = False
 #
-# ALLOWED_HOSTS = []
-
-DEBUG = False
-
-ALLOWED_HOSTS = ['teamwork.pythonanywhere.com']
+# ALLOWED_HOSTS = ['teamwork.pythonanywhere.com']
 
 
 # Application definition
