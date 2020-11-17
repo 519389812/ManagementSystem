@@ -118,14 +118,12 @@ savePNGButton.addEventListener("click", function (event) {
     var cxck = getCookie("csrftoken");
     if (contentId!="") {
       var jsonData = JSON.stringify({
-        "data": dataURL,
         "docx_id": docxId,
         "content_id": contentId,
       });
       xhr.open('post','/document/fill_signature/', true);
     } else {
       var jsonData = JSON.stringify({
-        "data": dataURL,
         "docx_id": docxId,
         "signature_key": signatureKey,
       });
