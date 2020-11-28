@@ -23,14 +23,32 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '0ck22$3ds26!7g$qk@q@w(r#tpqa$5acf7x7)$5p1ra2e798r0'
 
+online = True
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-#
-# ALLOWED_HOSTS = []
+# Database
+# https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DEBUG = False
-
-ALLOWED_HOSTS = ['teamwork.pythonanywhere.com']
+if online:
+    DEBUG = False
+    ALLOWED_HOSTS = ['teamwork.pythonanywhere.com']
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': "teamwork$teamwork",
+            'USER': 'teamwork',
+            'PASSWORD': 'zjss123456',
+            'HOST': 'teamwork.mysql.pythonanywhere-services.com',
+        }
+    }
+else:
+    DEBUG = True
+    ALLOWED_HOSTS = []
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, "db.sqlite3"),
+        }
+    }
 
 
 # Application definition
@@ -77,27 +95,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ManagementSystem.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, "db.sqlite3"),
-#     }
-# }
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': "teamwork$teamwork",
-        'USER': 'teamwork',
-        'PASSWORD': 'zjss123456',
-        'HOST': 'teamwork.mysql.pythonanywhere-services.com',
-    }
-}
 
 
 # Password validation
