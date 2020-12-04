@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 import zipfile
 import pandas as pd
 import numpy as np
+from Cryptodome.Cipher import AES
 
 
 time_zone = pytz_timezone(TIME_ZONE)
@@ -248,7 +249,7 @@ def fill_docx(request, docx_id, need_signature):
             content_id = docx_id + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             ContentStorage.objects.create(id=content_id, docx=docx_object, user=request.user, content=content)
         if need_signature:
-            return render(request, "signature.html", {"docx_id": content_id[:14], "content_id": content_id[15:], "signature_key": ""})
+            return render(request, "signature.html", {"docx_id": content_id[:14], "content_id": content_id[15:], "signature_key": "", "key": key})
         else:
             return redirect(reverse("view_docx", args=[docx_id]))
     else:
@@ -286,7 +287,7 @@ def supervise_docx(request):
             return render(request, "error_docx_missing.html", status=403)
         if check_docx_opened(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_opened.html", status=403)
-        return render(request, "signature.html", {"docx_id": docx_id, "content_id": "", "signature_key": signature_key})
+        return render(request, "signature.html", {"docx_id": docx_id, "content_id": "", "signature_key": signature_key, "key": key})
     else:
         return render(request, "error_400.html", status=400)
 

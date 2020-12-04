@@ -9,15 +9,25 @@ from document.translate import translate_en_to_cn, translate_type
 import base64
 import datetime
 from PIL import Image
+from ManagementSystem.settings import BASE_DIR
 
 
-source_dir = os.path.join(os.getcwd(), "ManagementSystem/document/static/document/docs/source/")
-templates_dir = os.path.join(os.getcwd(), "ManagementSystem/document/static/document/docs/templates/")
-storage_dir = os.path.join(os.getcwd(), "ManagementSystem/document/storage/")
-temporary_dir = os.path.join(os.getcwd(), "ManagementSystem/document/temporary/")
-translate_dir = os.path.join(os.getcwd(), "ManagementSystem/document/static/document/docs/translate/")
+source_dir = os.path.join(BASE_DIR, "document/static/document/docs/source/")
+templates_dir = os.path.join(BASE_DIR, "document/static/document/docs/templates/")
+storage_dir = os.path.join(BASE_DIR, "document/storage/")
+temporary_dir = os.path.join(BASE_DIR, "document/temporary/")
+translate_dir = os.path.join(BASE_DIR, "document/static/document/docs/translate/")
 translate_file_name = "translate.json"
 translate_path = os.path.join(translate_dir, translate_file_name)
+
+
+def check_dir_exists(dir_path):
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+
+
+for dir_path in [source_dir, templates_dir, storage_dir, temporary_dir, translate_dir]:
+    check_dir_exists(dir_path)
 
 
 def to_list(origin_text, is_type, is_not_type):

@@ -137,7 +137,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static', 'ManagementSystem'),
-    os.path.join(BASE_DIR, 'static', 'document'),
+    os.path.join(BASE_DIR, 'document', 'static', 'document'),
 ]
 
 AUTH_USER_MODEL = 'user.user'

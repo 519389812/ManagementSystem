@@ -116,30 +116,30 @@ savePNGButton.addEventListener("click", function (event) {
 //    var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var encrypt = new JSEncrypt();
     encrypt.setPublicKey(pubKey);
-    var dataURL = encrypt.encrypt(encodeURIComponent(signaturePad.toDataURL()));
+    var dataURL = encrypt.encryptLong(signaturePad.toDataURL());
     alert('加密成功！！' +dataURL);
-    var xhr=new XMLHttpRequest();
-    var cxck = getCookie("csrftoken");
-    if (contentId!="") {
-      var jsonData = JSON.stringify({
-        "data": dataURL,
-        "docx_id": docxId,
-        "content_id": contentId,
-      });
-      xhr.open('post','/document/fill_signature/', false);
-    } else {
-      var jsonData = JSON.stringify({
-        "data": dataURL,
-        "docx_id": docxId,
-        "signature_key": signatureKey,
-      });
-      xhr.open('post','/document/supervisor_signature/', false);
-    }
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader("X-CSRFToken", cxck);
-    xhr.send(jsonData);
-    alert("签名成功！");
-    window.location.href = "/document/view_docx/" + docxId;
+//    var xhr=new XMLHttpRequest();
+//    var cxck = getCookie("csrftoken");
+//    if (contentId!="") {
+//      var jsonData = JSON.stringify({
+//        "data": dataURL,
+//        "docx_id": docxId,
+//        "content_id": contentId,
+//      });
+//      xhr.open('post','/document/fill_signature/', false);
+//    } else {
+//      var jsonData = JSON.stringify({
+//        "data": dataURL,
+//        "docx_id": docxId,
+//        "signature_key": signatureKey,
+//      });
+//      xhr.open('post','/document/supervisor_signature/', false);
+//    }
+//    xhr.setRequestHeader('Content-Type', 'application/json');
+//    xhr.setRequestHeader("X-CSRFToken", cxck);
+//    xhr.send(jsonData);
+//    alert("签名成功！");
+//    window.location.href = "/document/view_docx/" + docxId;
   }
 });
 //
