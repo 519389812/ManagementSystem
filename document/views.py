@@ -17,6 +17,8 @@ from django.views.decorators.csrf import csrf_exempt
 import zipfile
 import pandas as pd
 import numpy as np
+import base64
+import hashlib
 from Cryptodome.Cipher import AES
 
 
@@ -230,6 +232,13 @@ def view_docx(request, docx_id):
         return render(request, "error_400.html", status=400)
 
 
+def decrypt(data, key):
+    aes = AES.new(key.encode(), AES.MODE_ECB)
+    decrypted_text = aes.decrypt(base64.decodebytes(bytes(data, encoding='utf8'))).decode("utf8")
+    decrypted_text = decrypted_text[:-ord(decrypted_text[-1])]  # 去除多余补位
+    return decrypted_text
+
+
 @check_authority
 def fill_docx(request, docx_id, need_signature):
     if request.method == "POST":
@@ -249,7 +258,7 @@ def fill_docx(request, docx_id, need_signature):
             content_id = docx_id + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             ContentStorage.objects.create(id=content_id, docx=docx_object, user=request.user, content=content)
         if need_signature:
-            return render(request, "signature.html", {"docx_id": content_id[:14], "content_id": content_id[15:], "signature_key": "", "key": key})
+            return render(request, "signature.html", {"docx_id": content_id[:14], "content_id": content_id[15:], "signature_key": ""})
         else:
             return redirect(reverse("view_docx", args=[docx_id]))
     else:
@@ -267,7 +276,7 @@ def fill_signature(request):
             return render(request, "error_docx_missing.html", status=403)
         if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_closed.html", status=403)
-        signature_data = parse.unquote(request_data["data"])
+        signature_data = parse.unquote(decrypt(request_data["data"], request_data["key"]))
         ContentStorage.objects.filter(id=docx_id + '_' + request_data["content_id"]).update(signature=signature_data)
         return redirect(reverse("view_docx", args=[docx_id]))
     else:
@@ -287,7 +296,7 @@ def supervise_docx(request):
             return render(request, "error_docx_missing.html", status=403)
         if check_docx_opened(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_opened.html", status=403)
-        return render(request, "signature.html", {"docx_id": docx_id, "content_id": "", "signature_key": signature_key, "key": key})
+        return render(request, "signature.html", {"docx_id": docx_id, "content_id": "", "signature_key": signature_key})
     else:
         return render(request, "error_400.html", status=400)
 
@@ -302,7 +311,7 @@ def supervisor_signature(request):
         except:
             return render(request, "error_docx_missing.html", status=403)
         signature_key = request_data["signature_key"]
-        signature_data = parse.unquote(request_data["data"])
+        signature_data = parse.unquote(decrypt(request_data["data"], request_data["key"]))
         signature_content_id = docx_id + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         SignatureStorage.objects.create(id=signature_content_id, docx=docx_object, user=request.user, content=signature_key, signature=signature_data)
         return redirect(reverse("view_docx", args=[docx_id]))

@@ -109,40 +109,56 @@ function getCookie(name){
   return "";
   }
 
+function randomNum(n) {
+  let sString = "";
+  let strings = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  for (i = 0; i < n; i++) {
+    ind = Math.floor(Math.random() * strings.length);
+    sString += strings.charAt(ind);
+  }
+  return sString;
+}
+
+function aesEncrypt(data, key) {
+  var k = CryptoJS.enc.Utf8.parse(key);
+  var d = CryptoJS.enc.Utf8.parse(data);
+  var encrypted = CryptoJS.AES.encrypt(d, k, {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7});
+  return encrypted.toString();
+}
+
 savePNGButton.addEventListener("click", function (event) {
   if (signaturePad.isEmpty()) {
     alert("Please provide a signature first.");
   } else {
-//    var dataURL = encodeURIComponent(signaturePad.toDataURL());
-    var encrypt = new JSEncrypt();
-    encrypt.setPublicKey(pubKey);
-    var dataURL = encrypt.encryptLong(signaturePad.toDataURL());
-    alert('加密成功！！' +dataURL);
-//    var xhr=new XMLHttpRequest();
-//    var cxck = getCookie("csrftoken");
-//    if (contentId!="") {
-//      var jsonData = JSON.stringify({
-//        "data": dataURL,
-//        "docx_id": docxId,
-//        "content_id": contentId,
-//      });
-//      xhr.open('post','/document/fill_signature/', false);
-//    } else {
-//      var jsonData = JSON.stringify({
-//        "data": dataURL,
-//        "docx_id": docxId,
-//        "signature_key": signatureKey,
-//      });
-//      xhr.open('post','/document/supervisor_signature/', false);
-//    }
-//    xhr.setRequestHeader('Content-Type', 'application/json');
-//    xhr.setRequestHeader("X-CSRFToken", cxck);
-//    xhr.send(jsonData);
-//    alert("签名成功！");
-//    window.location.href = "/document/view_docx/" + docxId;
+    var key = randomNum(16);
+    var dataURL = aesEncrypt(encodeURIComponent(signaturePad.toDataURL()), key)
+    var xhr=new XMLHttpRequest();
+    var cxck = getCookie("csrftoken");
+    if (contentId!="") {
+      var jsonData = JSON.stringify({
+        "data": dataURL,
+        "docx_id": docxId,
+        "content_id": contentId,
+        "key": key,
+      });
+      xhr.open('post','/document/fill_signature/', false);
+    } else {
+      var jsonData = JSON.stringify({
+        "data": dataURL,
+        "docx_id": docxId,
+        "signature_key": signatureKey,
+        "key": key,
+      });
+      xhr.open('post','/document/supervisor_signature/', false);
+    }
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader("X-CSRFToken", cxck);
+    xhr.send(jsonData);
+    alert("签名成功！");
+    window.location.href = "/document/view_docx/" + docxId;
   }
 });
-//
+
 //saveJPGButton.addEventListener("click", function (event) {
 //  if (signaturePad.isEmpty()) {
 //    alert("Please provide a signature first.");
