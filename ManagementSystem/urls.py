@@ -18,6 +18,7 @@ from django.urls import path, re_path
 from . import views as main_views
 from document import views as document_views
 from user import views as user_views
+from quickcheck import views as quickcheck_views
 from django.shortcuts import render
 from ManagementSystem.views import error_404, error_400, error_403, error_500
 
@@ -74,4 +75,9 @@ urlpatterns = [
     re_path('document/close_docx/(.+)/$', document_views.close_docx, name="close_docx"),
     re_path('document/download_docx/(.+)/$', document_views.download_docx, name="download_docx"),
     re_path('document/supervise_docx/', document_views.supervise_docx, name="supervise_docx"),
+
+    # quickcheck
+    path('quickcheck/', quickcheck_views.quickcheck, name="quickcheck"),
+    path('quickcheck/outbound_limit', quickcheck_views.outbound_limit, name="outbound_limit"),
+    path('quickcheck/outbound_limit/singapore', quickcheck_views.outbound_limit_singapore, name="outbound_limit_singapore"),
 ]

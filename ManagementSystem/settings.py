@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'user',
     'group',
     'team',
+    'quickcheck',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +82,12 @@ ROOT_URLCONF = 'ManagementSystem.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'announcement', 'templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'document', 'templates'),
+            os.path.join(BASE_DIR, 'announcement', 'templates'),
+            os.path.join(BASE_DIR, 'quickcheck', 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -138,6 +144,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static', 'ManagementSystem'),
     os.path.join(BASE_DIR, 'document', 'static', 'document'),
+    os.path.join(BASE_DIR, 'quickcheck', 'static', 'quickcheck'),
 ]
 
 AUTH_USER_MODEL = 'user.user'
