@@ -26,8 +26,8 @@
     <div class="signature-pad--body">
         <canvas></canvas>
     </div>
-    <div class="signature-pad--footer">
-        <div class="description">手机端请横签</div>
+    <div id="signature-pad-footer" class="signature-pad--footer">
+        <div class="description">请在上方签名</div>
         <div class="signature-pad--actions">
             <div>
                 <button type="button" class="button clear" data-action="clear">重签</button>
@@ -57,6 +57,16 @@
     var docxId = '{{ docx_id }}';
     var contentId = '{{ content_id }}';
     var signatureKey = '{{ signature_key }}';
+
+    $(document).ready(function (){
+      var width = document.documentElement.clientWidth;
+      var height = document.documentElement.clientHeight;
+      if (width < height) {
+        console.log(width, height);
+        $("#signature-pad").addClass("wrapper-pad");
+        $("#signature-pad-footer").addClass("wrapper-footer");
+      }
+    });
 </script>
 <script src="{% static 'js/signature_pad.umd.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
