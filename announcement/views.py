@@ -16,13 +16,10 @@ from user.views import check_authority
 
 
 @check_authority
-def make_announcement(request, team_id, id):
+def make_announcement(request, id):
     if request.user.team_id != team_id:
         return HttpResponse("无权限查看!")
-    try:
-        current_username = request.user.full_name
-    except:
-        current_username = User.objects.get(username=request.session["login_user"]).full_name
+    current_username = request.user
     announcement = Announcement.objects.get(id=id)
     feedback = Feedback.objects.filter(aid=id)
     to_group_obj = announcement.to_group.all()
