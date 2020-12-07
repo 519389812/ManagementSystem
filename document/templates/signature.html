@@ -36,7 +36,7 @@
 
             </div>
             <div>
-                <button type="button" class="button save" data-action="save-png">确认</button>
+                <button id="submit" type="button" class="button save" data-action="save-png" onclick="submit()">确认</button>
             </div>
         </div>
     </div>
@@ -62,11 +62,14 @@
       var width = document.documentElement.clientWidth;
       var height = document.documentElement.clientHeight;
       if (width < height) {
-        console.log(width, height);
         $("#signature-pad").addClass("wrapper-pad");
         $("#signature-pad-footer").addClass("wrapper-footer");
       }
     });
+
+    function submit() {
+      $("#submit").attr("disabled","disabled");
+    }
 </script>
 <script src="{% static 'js/signature_pad.umd.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>

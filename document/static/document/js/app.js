@@ -141,7 +141,7 @@ savePNGButton.addEventListener("click", function (event) {
         "content_id": contentId,
         "key": key,
       });
-      xhr.open('post','/document/fill_signature/', false);
+      xhr.open('post','/document/fill_signature/', true);
     } else {
       var jsonData = JSON.stringify({
         "data": dataURL,
@@ -149,12 +149,12 @@ savePNGButton.addEventListener("click", function (event) {
         "signature_key": signatureKey,
         "key": key,
       });
-      xhr.open('post','/document/supervisor_signature/', false);
+      xhr.open('post','/document/supervisor_signature/', true);
     }
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader("X-CSRFToken", cxck);
     xhr.send(jsonData);
-    alert("签名成功！");
+    alert("签名成功，请等待页面跳转！");
     window.location.href = "/document/view_docx/" + docxId;
   }
 });
