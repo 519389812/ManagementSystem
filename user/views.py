@@ -18,6 +18,8 @@ def check_authority(func):
         if not args[0].user.is_authenticated:
             args[0].session["path"] = args[0].path
             return redirect(reverse("login"))
+        print('请求相关的信息：', (args[0].environ))
+        print('设备信息：', args[0].environ.get("HTTP_USER_AGENT"))
         return func(*args, **kwargs)
     return wrapper
 
