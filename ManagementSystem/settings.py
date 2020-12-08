@@ -34,7 +34,7 @@ if online:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': "teamwork$teamwork",
+            'NAME': "teamwork$default",
             'USER': 'teamwork',
             'PASSWORD': 'zjss123456',
             'HOST': 'teamwork.mysql.pythonanywhere-services.com',
