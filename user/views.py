@@ -8,6 +8,8 @@ from django.contrib.auth import logout as logout_admin
 from django.contrib.auth import authenticate
 from django.utils.datastructures import MultiValueDictKeyError
 import re
+from user_agents import parse
+from urllib.parse import urlparse
 import uuid
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 # from django.utils import timezone
@@ -18,8 +20,18 @@ def check_authority(func):
         if not args[0].user.is_authenticated:
             args[0].session["path"] = args[0].path
             return redirect(reverse("login"))
-        print('请求相关的信息：', (args[0].environ))
-        print('设备信息：', args[0].environ.get("HTTP_USER_AGENT"))
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def check_is_touch_capable(func):
+    def wrapper(*args, **kwargs):
+        user_agent = parse(args[0].META.get('HTTP_USER_AGENT'))
+        if not user_agent.is_touch_capable:
+            if args[0].META.get("HTTP_REFERER"):
+                return redirect(args[0].META.get("HTTP_REFERER")+"请使用触屏设备签名")
+            else:
+                return redirect("/")
         return func(*args, **kwargs)
     return wrapper
 
@@ -57,6 +69,16 @@ def login(request, error=""):
         user = authenticate(username=username, password=password)
         if user:
             login_admin(request, user)
+            if request.META.get('HTTP_X_FORWARDED_FOR'):
+                ip = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0]
+            else:
+                ip = request.META.get('REMOTE_ADDR').split(',')[0]
+            user_agent = parse(request.META.get('HTTP_USER_AGENT'))
+            if user_agent.is_touch_capable is True:
+                if User.objects.filter(ip_address=ip).exclude(username=username).count() > 0:
+                    return redirect(reverse("login", args=["您是否使用了他人设备登录？若是，请使用自己设备登录；如果系统判断失误，请联系管理员！"]))
+            user.ip_address = ip
+            user.save()
             path = request.session.get("path", "")
             if path != "":
                 return redirect(path)

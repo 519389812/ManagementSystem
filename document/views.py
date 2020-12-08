@@ -11,7 +11,7 @@ import math
 from urllib import parse
 from django.utils import timezone
 from ManagementSystem.settings import TIME_ZONE
-from user.views import check_authority
+from user.views import check_authority, check_is_touch_capable
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.views.decorators.csrf import csrf_exempt
 import zipfile
@@ -166,7 +166,7 @@ def split_list_by_n(list_collection, n):
 
 
 @check_authority
-def view_docx(request, docx_id):
+def view_docx(request, docx_id, info=""):
     if request.method == "GET":
         docx_object = DocxInit.objects.filter(id=docx_id)
         if len(docx_object) == 0:
@@ -227,7 +227,7 @@ def view_docx(request, docx_id):
         else:
             write(document_template_handler, docx_path % 1, docx_dict["content"])
             docx_html_list.append(docx_to_html(docx_path % 1))
-        return render(request, "view_docx.html", {"docx_dict": docx_dict, "docx_html_list": docx_html_list[:3], "content_variable_dict": content_variable_dict, "need_signature": need_signature, "filled": filled, "signed": signed, "closed": closed, "supervisor_variable_dict": supervisor_variable_dict})
+        return render(request, "view_docx.html", {"docx_dict": docx_dict, "docx_html_list": docx_html_list[:3], "content_variable_dict": content_variable_dict, "need_signature": need_signature, "filled": filled, "signed": signed, "closed": closed, "supervisor_variable_dict": supervisor_variable_dict, "info": info})
     else:
         return render(request, "error_400.html", status=400)
 
@@ -240,6 +240,7 @@ def decrypt(data, key):
 
 
 @check_authority
+@check_is_touch_capable
 def fill_docx(request, docx_id, need_signature):
     if request.method == "POST":
         try:
@@ -284,6 +285,7 @@ def fill_signature(request):
 
 
 @check_authority
+@check_is_touch_capable
 def supervise_docx(request):
     if request.method == "GET":
         docx_id = request.GET.get("docx_id", "")

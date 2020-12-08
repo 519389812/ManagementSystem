@@ -3,9 +3,10 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
+    ip_address = models.CharField(max_length=20, blank=True, verbose_name="上次登录ip")
 
     def get_full_name(self):
-        full_name = '%s %s' % (self.last_name, self.first_name)
+        full_name = '%s%s' % (self.last_name, self.first_name)
         return full_name.strip()
 
     def __str__(self):

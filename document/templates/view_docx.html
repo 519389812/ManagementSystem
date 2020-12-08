@@ -54,6 +54,9 @@
             <div class="card mb-4">
                 <h5 class="card-header">填写文档</h5>
                 <div class="card-body">
+                    {% if info != "" %}
+                        <p>{{ info }}</p>
+                    {% endif %}
                     {% if closed == False %}
                         <form class="input-group" action="{% url 'fill_docx' docx_dict.id need_signature %}" method="post">
                             {% csrf_token %}
