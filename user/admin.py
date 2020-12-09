@@ -12,7 +12,7 @@ class CustomUserAdmin(UserAdmin):
         }),
         ('Important dates', {'fields': ('last_login', 'ip_address', 'date_joined')}),
     )
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_active')
+    list_display = ('username', 'last_name', 'first_name', 'last_login', 'is_active')
     # readonly_fields = ('branch_id',)
 
     # def get_readonly_fields(self, request, obj=None):
