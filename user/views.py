@@ -68,15 +68,18 @@ def login(request, error=""):
         password = request.POST.get("password")
         user = authenticate(username=username, password=password)
         if user:
-            login_admin(request, user)
             if request.META.get('HTTP_X_FORWARDED_FOR'):
                 ip = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0]
             else:
                 ip = request.META.get('REMOTE_ADDR').split(',')[0]
             user_agent = parse(request.META.get('HTTP_USER_AGENT'))
             if user_agent.is_touch_capable is True:
+                print("is_touch_capable:", user_agent.is_touch_capable)
                 if User.objects.filter(ip_address=ip).exclude(username=username).count() > 0:
+                    print("count:", User.objects.filter(ip_address=ip).exclude(username=username))
                     return redirect(reverse("login", args=["您是否使用了他人设备登录？若是，请使用自己设备登录；如果系统判断失误，请联系管理员！"]))
+                login_admin(request, user)
+                print("ip:", ip)
                 user.ip_address = ip
                 user.save()
             path = request.session.get("path", "")
