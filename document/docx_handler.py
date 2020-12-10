@@ -106,6 +106,15 @@ def docx_to_html(docx_path):
     return docx_html
 
 
+def fix_image_rotate(image_path):
+    img = Image.open(image_path)
+    x, y = img.size
+    if y > x:
+        img = img.rotate(90, expand=True)
+        img.save(image_path)
+    img.close()
+
+
 def write(document_template_handler, save_path, init_content: str = None, fill_content: list = None, content_variable_dict: dict = None, auto_variable_dict: str = None, signature_content: list = None, maximum=0):
     context = {}
     datetime_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -139,12 +148,7 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
                     image_path = temporary_dir + datetime_now + '_%s.png' % i
                     with open(image_path, 'wb') as f:
                         f.write(content_str)
-                    img = Image.open(image_path)
-                    x, y = img.size
-                    if y > x:
-                        img = img.rotate(90, expand=True)
-                        img.save(image_path)
-                    img.close()
+                    fix_image_rotate(image_path)
                     content_str = InlineImage(document_template_handler, image_path, height=Mm(9))
                     image_path_list.append(image_path)
                 context.update({name: content_str})
@@ -164,6 +168,7 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
                 image_path = temporary_dir + datetime_now + '_%s.png' % i
                 with open(image_path, 'wb') as f:
                     f.write(content_str)
+                fix_image_rotate(image_path)
                 content_str = InlineImage(document_template_handler, image_path, height=Mm(8))
                 image_path_list.append(image_path)
                 context.update({name: content_str})
