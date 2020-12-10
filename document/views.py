@@ -277,8 +277,9 @@ def fill_signature(request):
             return render(request, "error_docx_missing.html", status=403)
         if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_closed.html", status=403)
-        # signature_data = parse.unquote(decrypt(request_data["data"], request_data["key"]))
-        signature_data = parse.unquote(request_data["data"])
+        signature_data = parse.unquote(decrypt(request_data["data"], request_data["key"]))
+        # signature_data = parse.unquote(request_data["data"])
+        print("signature_data:", signature_data)
         ContentStorage.objects.filter(id=docx_id + '_' + request_data["content_id"]).update(signature=signature_data)
         return redirect(reverse("view_docx", args=[docx_id]))
     else:
@@ -314,8 +315,9 @@ def supervisor_signature(request):
         except:
             return render(request, "error_docx_missing.html", status=403)
         signature_key = request_data["signature_key"]
-        # signature_data = parse.unquote(decrypt(request_data["data"], request_data["key"]))
-        signature_data = parse.unquote(request_data["data"])
+        signature_data = parse.unquote(decrypt(request_data["data"], request_data["key"]))
+        print("signature_data:", signature_data)
+        # signature_data = parse.unquote(request_data["data"])
         signature_content_id = docx_id + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         SignatureStorage.objects.create(id=signature_content_id, docx=docx_object, user=request.user, content=signature_key, signature=signature_data)
         return redirect(reverse("view_docx", args=[docx_id]))

@@ -131,8 +131,8 @@ savePNGButton.addEventListener("click", function (event) {
     alert("Please provide a signature first.");
   } else {
     var key = randomNum(16);
-//    var dataURL = aesEncrypt(encodeURIComponent(signaturePad.toDataURL()), key);
-    var dataURL = encodeURIComponent(signaturePad.toDataURL());
+    var dataURL = aesEncrypt(encodeURIComponent(signaturePad.toDataURL()), key);
+//    var dataURL = encodeURIComponent(signaturePad.toDataURL());
     var xhr=new XMLHttpRequest();
     var cxck = getCookie("csrftoken");
     if (contentId!="") {
