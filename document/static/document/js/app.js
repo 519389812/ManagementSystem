@@ -128,7 +128,7 @@ function aesEncrypt(data, key) {
 
 savePNGButton.addEventListener("click", function (event) {
   if (signaturePad.isEmpty()) {
-    alert("Please provide a signature first.");
+    alert("请先签名！");
   } else {
     var key = randomNum(16);
     var dataURL = aesEncrypt(encodeURIComponent(signaturePad.toDataURL()), key);
@@ -154,9 +154,18 @@ savePNGButton.addEventListener("click", function (event) {
     }
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader("X-CSRFToken", cxck);
+    xhr.onreadystatechange = function () {  //绑定响应状态事件监听函数
+      if (xhr.readyState == 4) {  //监听readyState状态
+        if (xhr.status == 200 || xhr.status == 0) {  //监听HTTP状态码
+          alert("提交成功，页面将自动跳转！");  //接收数据
+        } else {
+          alert("提交失败！");
+        }
+        window.location.href = "/document/view_docx/" + docxId;
+      }
+    }
     xhr.send(jsonData);
-    alert("签名成功，请等待页面跳转！");
-    window.location.href = "/document/view_docx/" + docxId;
+    alert("签名成功，请等待页面反馈！");
   }
 });
 
