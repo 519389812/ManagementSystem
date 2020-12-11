@@ -139,9 +139,8 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
                 pass
             try:
                 content_str = content["signature"]
-                if i == maximum:
+                if i == maximum-1:
                     name = content_variable_dict["signature"]["origin"]
-                    print("name", name)
                 else:
                     name = "signature" + '__' + str(i)
                 if content_str != "":
@@ -152,8 +151,6 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
                     fix_image_rotate(image_path)
                     content_str = InlineImage(document_template_handler, image_path, height=Mm(9))
                     image_path_list.append(image_path)
-                    if i == maximum:
-                        print("image_path", image_path)
                 context.update({name: content_str})
             except:
                 pass
