@@ -126,10 +126,7 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
         except:
             pass
     if fill_content:
-        try:
-            print("fill_content[19]:", fill_content[19])
-        except:
-            pass
+        k = 0
         for content in fill_content:
             try:
                 content_dict = json.loads(content["content"])
@@ -143,6 +140,11 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
                 pass
             try:
                 content_str = content["signature"]
+                if k == 19:
+                    print("content_str:", content_str)
+                    print("name:", content_variable_dict["signature"]["origin"])
+                    print("i:", i)
+                    print("maximun:", maximum)
                 if i == maximum:
                     name = content_variable_dict["signature"]["origin"]
                 else:
@@ -159,6 +161,7 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
             except:
                 pass
             i += 1
+            k += 1
     if auto_variable_dict:
         try:
             context.update(json.loads(auto_variable_dict))
