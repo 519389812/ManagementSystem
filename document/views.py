@@ -187,8 +187,6 @@ def view_docx(request, docx_id, info=""):
             return render(request, "error_403.html", status=403)
         maximum = int(content_variable_dict[list(content_variable_dict.keys())[0]]["maximum"]) + 1
         need_signature = content_variable_dict.__contains__("signature")
-        if need_signature:
-            del(content_variable_dict["signature"])
         docx_content_queryset = ContentStorage.objects.filter(docx__id=docx_id)
         if docx_content_queryset.filter(user__id=request.user.id).count() > 0:
             filled = True
