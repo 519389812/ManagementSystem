@@ -126,6 +126,10 @@ def write(document_template_handler, save_path, init_content: str = None, fill_c
         except:
             pass
     if fill_content:
+        try:
+            print("fill_content[19]:", fill_content[19])
+        except:
+            pass
         for content in fill_content:
             try:
                 content_dict = json.loads(content["content"])
