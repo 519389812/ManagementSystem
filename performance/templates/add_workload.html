@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    {% include "head.html" %}
+    <title>人员管理</title>
+</head>
+
+<body>
+<!-- Navigation -->
+{% include "navigation.html" %}
+
+<!-- Page Content -->
+<div class="container">
+
+    <!-- Page Heading/Breadcrumbs -->
+    <h1 class="mt-4 mb-3">人员管理
+        <small>模块</small>
+    </h1>
+    <ol class="breadcrumb">
+        {% include "route.html" %}
+        {% include "route_workload.html" %}
+        <li class="breadcrumb-item active">绩效登记</li>
+    </ol>
+    <!-- Contact Form -->
+    <!-- In order to set the email address and subject line for the contact form go to the bin/contact_me.php file. -->
+    {% block content %}
+    <div class="row">
+        <div class="col-xs-12 col-md-8">
+            <h3>用户登录</h3>
+            <form name="loginForm" id="loginForm" action="{% url 'add_workload' %}" method="post">
+                {% csrf_token %}
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>登记人:</label>
+                        <input type="text" name="user" class="form-control" id="user" disabled="disabled"
+                               value="{{ request.user.get_full_name }}">
+                        <p id="name-validate"></p>
+                        <p class="help-block" id="user_validate"></p>
+                    </div>
+                </div>
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>岗位:</label>
+                        <select id="position" name="position" required="required" class="form-control">
+                            {% for position in position_list %}
+                            <option value="{{ position }}">{{ position }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="help-block" id="position_validate"></p>
+                    </div>
+                </div>
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>工作时长:</label>
+                        <input type="number" name="worktime" required="required" class="form-control" id="worktime"
+                               placeholder="请输入工作时长">
+                        <p class="help-block" id="worktime_validate"></p>
+                    </div>
+                </div>
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>指派分队:</label>
+                        <select id="department" name="department" required="required" class="form-control">
+                            {% for department in department_list %}
+                            <option value="{{ department }}">{{ department }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="help-block" id="department_validate"></p>
+                    </div>
+                </div>
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>日期:</label>
+                        <input type="date" name="created_time" class="form-control" required="required" id="created_time"  max="date_now" placeholder="请输入工作量所属日期" >
+                        <p class="help-block" id="created_time_validate"></p>
+                    </div>
+                </div>
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>备注:</label>
+                        <textarea name="remark" class="form-control" id="remark"></textarea>
+                        <p class="help-block" id="remark_validate"></p>
+                    </div>
+                </div>
+                  <button type="submit" class="btn btn-primary" id="submit">提交</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <div class="card my-4">
+                <h2 class="card-header">查询</h2>
+                <div class="card-body">
+                    查询工作量登记详情，请点击下方按钮！
+                    <a href="/workload/addinfo/">
+                        <button type="button" class="btn btn-secondary">登记详情</button></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Footer -->
+{% include "footer.html" %}
+
+<!-- Bootstrap core JavaScript -->
+{% include "script.html" %}
+<script>
+
+    $(function(){
+           //得到当前时间
+        var date_now = new Date();
+        //得到当前年份
+        var year = date_now.getFullYear();
+        //得到当前月份
+        //注：
+        //  1：js中获取Date中的month时，会比当前月份少一个月，所以这里需要先加一
+        //  2: 判断当前月份是否小于10，如果小于，那么就在月份的前面加一个 '0' ， 如果大于，就显示当前月份
+        var month = date_now.getMonth()+1 < 10 ? "0"+(date_now.getMonth()+1) : (date_now.getMonth()+1);
+        //得到当前日子（多少号）
+        var date = date_now.getDate() < 10 ? "0"+date_now.getDate() : date_now.getDate();
+        //设置input标签的max属性
+        $("#created_time").attr("max",year+"-"+month+"-"+date);
+    })
+
+</script>
+</body>
+</html>

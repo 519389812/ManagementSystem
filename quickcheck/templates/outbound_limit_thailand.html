@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    {% include "head.html" %}
+    <title>业务速查</title>
+</head>
+
+<body>
+<!-- Navigation -->
+{% include "navigation.html" %}
+
+<!-- Page Content -->
+<div class="container">
+
+    <!-- Page Heading/Breadcrumbs -->
+    <h1 class="mt-4 mb-3">泰国
+        <small></small>
+    </h1>
+
+    <ol class="breadcrumb">
+        {% include "route.html" %}
+        {% include "route_quickcheck.html" %}
+        {% include "route_quickcheck_outbound_limit.html" %}
+        <li class="breadcrumb-item active">泰国</li>
+    </ol>
+
+    <div class="mb-4" id="accordion" role="tablist" aria-multiselectable="true">
+        <div class="card">
+            <div class="card-header" role="tab" id="headingOne">
+                <h5 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true"
+                       aria-controls="collapseOne">泰国国民</a>
+                </h5>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。2.持有（1）泰国使领馆开具的入境许可。（2）FIT TO FLY适宜乘机证明。（3）起飞前72小时内开具的核酸检测呈阴性的实验室报告。（但如无该报告，也可乘机）
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingTwo">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"
+                       aria-expanded="false" aria-controls="collapseTwo">泰国总理或政府负责人批准、豁免或邀请的人员</a>
+                </h5>
+            </div>
+            <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。2.持有（1）泰国使领馆开具的入境许可。（2）FIT TO FLY适宜乘机证明。（3）起飞前72小时内开具的核酸检测呈阴性的实验室报告。（4）在泰行程单如隔离酒店订单，回程机票等。
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingThree">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseThree"
+                       aria-expanded="false" aria-controls="collapseThree">外交使团、领事、国际组织、政府代表、在泰国工作的外国政府机构人员，或外交部允许的其他国际机构人员，包括其配偶，父母或子女 </a>
+                </h5>
+            </div>
+            <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。2.持有（1）泰国使领馆开具的入境许可。（2）FIT TO FLY适宜乘机证明。（3）起飞前72小时内开具的核酸检测呈阴性的实验室报告。（4）保额不低于10万美元且可用于在泰期间治疗新冠肺炎的医疗保险单。
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingFour">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseFour"
+                       aria-expanded="false" aria-controls="collapseFour">必需品货物的承运人，完成任务后需要立即返回</a>
+                </h5>
+            </div>
+            <div id="collapseFour" class="collapse" role="tabpanel" aria-labelledby="headingFour">
+                <div class="card-body">
+                    无具体要求。
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingFive">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseFive"
+                       aria-expanded="false" aria-controls="collapseFive">非泰国国民，泰国国民的伴侣/父母/子女<b>或</b>有泰国居住证<b>或</b>有泰国工作证或允许在泰国工作，包括他们的伴侣和子女</a>
+                </h5>
+            </div>
+            <div id="collapseFive" class="collapse" role="tabpanel" aria-labelledby="headingFive">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。2.持有（1）泰国使领馆开具的入境许可。（2）FIT TO FLY适宜乘机证明。（3）起飞前72小时内开具的核酸检测呈阴性的实验室报告。（4）保额不低于10万美元且可用于在泰期间治疗新冠肺炎的医疗保险单。（5）泰国隔离酒店订单。
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingSix">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseSix"
+                       aria-expanded="false" aria-controls="collapseSix">私立国际学院留学生及其父母或其监护人，非正式教育机构或其他类似的私人教育机构的学生除外</a>
+                </h5>
+            </div>
+            <div id="collapseSix" class="collapse" role="tabpanel" aria-labelledby="headingSix">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。2.持有（1）泰国使领馆开具的入境许可。（2）FIT TO FLY适宜乘机证明。（3）起飞前72小时内开具的核酸检测呈阴性的实验室报告。（4）保额不低于10万美元且可用于在泰期间治疗新冠肺炎的医疗保险单。（5）泰国隔离酒店订单。
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingSeven">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseSeven"
+                       aria-expanded="false" aria-controls="collapseSeven">公立大学及边防学校的留学生（不包含其父母或监护人）</a>
+                </h5>
+            </div>
+            <div id="collapseSeven" class="collapse" role="tabpanel" aria-labelledby="headingSeven">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。2.持有（1）组织或公司等承诺承担该学生在泰国期间治疗新冠肺炎的证明信函。（2）泰国隔离酒店订单。
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingEight">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseEight"
+                       aria-expanded="false" aria-controls="collapseEight">非泰国国民，需要在泰国接受医疗服务的人员，包括其看护人员（不得超过三人），不包含治疗新冠病毒肺炎</a>
+                </h5>
+            </div>
+            <div id="collapseEight" class="collapse" role="tabpanel" aria-labelledby="headingEight">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。 2.持有（1）泰国使领馆开具的入境许可。（2）FIT TO FLY适宜乘机证明。（3）起飞前72小时内开具的核酸检测呈阴性的实验室报告。（4）保额不低于10万美元且可用于在泰期间治疗新冠肺炎的医疗保险单。（5）财力证明。（6）泰国隔离地点证明信。（7）所在国医院开具的前往泰国医院治疗的证明。（8）泰国医院开具的旅客前往就诊的证明且计划就诊天数不得少于14天。
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingNine">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseNine"
+                       aria-expanded="false" aria-controls="collapseNine">非泰国国民，根据与特定国家的特殊协议可以进入泰国</a>
+                </h5>
+            </div>
+            <div id="collapseNine" class="collapse" role="tabpanel" aria-labelledby="headingNine">
+                <div class="card-body">
+                    1.入境前14天内避免前往高危地区。2.持有（1）泰国使领馆开具的入境许可。（2）FIT TO FLY适宜乘机证明。（3）起飞前72小时内开具的核酸检测呈阴性的实验室报告。（4）保额不低于10万美元且可用于在泰期间治疗新冠肺炎的医疗保险单。（5）泰国隔离酒店订单。
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- /.container -->
+
+<!-- Footer -->
+{% include "footer.html" %}
+
+<!-- Bootstrap core JavaScript -->
+{% include "script.html" %}
+
+</body>
+
+</html>

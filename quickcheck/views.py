@@ -15,3 +15,13 @@ def outbound_limit(request):
 @check_authority
 def outbound_limit_singapore(request):
     return render(request, "outbound_limit_singapore.html")
+
+
+@check_authority
+def outbound_limit_cambodia(request):
+    return render(request, "outbound_limit_cambodia.html")
+
+
+@check_authority
+def outbound_limit_thailand(request):
+    return render(request, "outbound_limit_thailand.html")

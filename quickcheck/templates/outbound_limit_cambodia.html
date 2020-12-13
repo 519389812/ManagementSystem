@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    {% include "head.html" %}
+    <title>业务速查</title>
+</head>
+
+<body>
+<!-- Navigation -->
+{% include "navigation.html" %}
+
+<!-- Page Content -->
+<div class="container">
+
+    <!-- Page Heading/Breadcrumbs -->
+    <h1 class="mt-4 mb-3">柬埔寨
+        <small></small>
+    </h1>
+
+    <ol class="breadcrumb">
+        {% include "route.html" %}
+        {% include "route_quickcheck.html" %}
+        {% include "route_quickcheck_outbound_limit.html" %}
+        <li class="breadcrumb-item active">柬埔寨</li>
+    </ol>
+
+    <div class="mb-4" id="accordion" role="tablist" aria-multiselectable="true">
+        <div class="card">
+            <div class="card-header" role="tab" id="headingOne">
+                <h5 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true"
+                       aria-controls="collapseOne">柬埔寨</a>
+                </h5>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+                <div class="card-body">
+                    请参考下图
+                </div>
+                <hr>
+                <img class="card-img-bottom" src="{% static 'images/outbound_limit_cambodia_1_1200_500.jpg' %}" alt="">
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- /.container -->
+
+<!-- Footer -->
+{% include "footer.html" %}
+
+<!-- Bootstrap core JavaScript -->
+{% include "script.html" %}
+
+</body>
+
+</html>

@@ -81,4 +81,6 @@ urlpatterns = [
     path('quickcheck/', quickcheck_views.quickcheck, name="quickcheck"),
     path('quickcheck/outbound_limit', quickcheck_views.outbound_limit, name="outbound_limit"),
     path('quickcheck/outbound_limit/singapore', quickcheck_views.outbound_limit_singapore, name="outbound_limit_singapore"),
+    path('quickcheck/outbound_limit/cambodia', quickcheck_views.outbound_limit_cambodia, name="outbound_limit_cambodia"),
+    path('quickcheck/outbound_limit/thailand', quickcheck_views.outbound_limit_thailand, name="outbound_limit_thailand"),
 ]
