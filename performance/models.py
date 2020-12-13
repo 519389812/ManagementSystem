@@ -2,21 +2,114 @@ from django.db import models
 import django.utils.timezone as timezone
 from team.models import Department
 from user.models import User
-import datetime
-# from django.db.models.fields import exceptions
-# from django.contrib.contenttypes.fields import GenericForeignKey
-# from django.contrib.contenttypes.models import ContentType
 
 
 class Position(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=300, blank=True, verbose_name="岗位名称")
-    score = models.IntegerField(verbose_name="基础分数")
-    staff_score = models.IntegerField(verbose_name="基础工作量(1小时)")
+    name = models.CharField(max_length=300, unique=True, verbose_name="岗位名称")
+    score = models.FloatField(verbose_name="岗位基础分数")
+    workload = models.FloatField(verbose_name="岗位基础工作量")
+    bonus = models.FloatField(verbose_name="岗位基础奖金")
 
     class Meta:
         verbose_name = '岗位'
         verbose_name_plural = "岗位"
+
+    def __str__(self):
+        return self.name
+
+
+class SkillType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="技能类别")
+
+    class Meta:
+        verbose_name = '技能类别'
+        verbose_name_plural = "技能类别"
+
+    def __str__(self):
+        return self.name
+
+
+class Skill(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(SkillType, on_delete=models.CASCADE, verbose_name="技能类别")
+    name = models.CharField(max_length=100, unique=True, verbose_name="技能名称")
+    score = models.FloatField(verbose_name="技能基础分数")
+    workload = models.FloatField(verbose_name="技能基础工作量")
+    bonus = models.FloatField(verbose_name="技能基础奖金")
+
+    class Meta:
+        verbose_name = '技能'
+        verbose_name_plural = "技能"
+
+    def __str__(self):
+        return self.name
+
+
+class RewardType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="奖惩类别")
+
+    class Meta:
+        verbose_name = '奖惩类别'
+        verbose_name_plural = "奖惩类别"
+
+    def __str__(self):
+        return self.name
+
+
+class Reward(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(RewardType, on_delete=models.CASCADE, verbose_name="奖惩类别")
+    name = models.CharField(max_length=100, unique=True, verbose_name="奖惩名称")
+    score = models.CharField(max_length=100, verbose_name="奖惩基础分")
+    workload = models.FloatField(verbose_name="奖惩基础工作量")
+    bonus = models.FloatField(verbose_name="奖惩基础奖金")
+
+    class Meta:
+        verbose_name = '奖惩'
+        verbose_name_plural = "奖惩"
+
+    def __str__(self):
+        return self.name
+
+
+class ShiftType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="班次类别")
+
+    class Meta:
+        verbose_name = '班次类别'
+        verbose_name_plural = "班次类别"
+
+    def __str__(self):
+        return self.name
+
+
+class Shift(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(ShiftType, on_delete=models.CASCADE, verbose_name="班次类别")
+    name = models.CharField(max_length=100, unique=True, verbose_name="班次")
+    score = models.CharField(max_length=100, verbose_name="班次基础分")
+    workload = models.FloatField(verbose_name="班次基础工作量")
+    bonus = models.FloatField(verbose_name="班次基础奖金")
+
+    class Meta:
+        verbose_name = '班次'
+        verbose_name_plural = "班次"
+
+    def __str__(self):
+        return self.name
+
+
+class Rule(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="名称")
+
+    class Meta:
+        verbose_name = '规则'
+        verbose_name_plural = "规则"
 
     def __str__(self):
         return self.name
@@ -57,43 +150,3 @@ class Score(models.Model):
     class Meta:
         verbose_name = '统计'
         verbose_name_plural = "统计"
-
-
-class Skill(models.Model):
-    id = models.AutoField(primary_key=True)
-    type = models.CharField(max_length=100, blank=True, verbose_name="技能类别")
-    name = models.CharField(max_length=100, unique=True, blank=True, verbose_name="技能名称")
-    score = models.CharField(max_length=100, blank=True, verbose_name="技能基础分数")
-
-    class Meta:
-        verbose_name = '技能'
-        verbose_name_plural = "技能"
-
-    def __str__(self):
-        return self.name
-
-
-class Shift(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, blank=True, verbose_name="班次")
-
-    class Meta:
-        verbose_name = '班次'
-        verbose_name_plural = "班次"
-
-    def __str__(self):
-        return self.name
-
-
-class Penalty(models.Model):
-    id = models.AutoField(primary_key=True)
-    type = models.CharField(max_length=100, blank=True, verbose_name="奖惩类别")
-    name = models.CharField(max_length=3000, blank=True, verbose_name="奖惩")
-    score = models.CharField(max_length=1000, blank=True, verbose_name="奖惩基础分(单次)")
-
-    class Meta:
-        verbose_name = '奖惩'
-        verbose_name_plural = "奖惩"
-
-    def __str__(self):
-        return self.name  # 奖惩模型
