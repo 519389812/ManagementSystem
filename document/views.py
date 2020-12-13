@@ -225,6 +225,8 @@ def view_docx(request, docx_id, info=""):
         else:
             write(document_template_handler, docx_path % 1, docx_dict["content"])
             docx_html_list.append(docx_to_html(docx_path % 1))
+        if need_signature:
+            del(content_variable_dict["signature"])
         return render(request, "view_docx.html", {"docx_dict": docx_dict, "docx_html_list": docx_html_list[:3], "content_variable_dict": content_variable_dict, "need_signature": need_signature, "filled": filled, "signed": signed, "closed": closed, "supervisor_variable_dict": supervisor_variable_dict, "info": info})
     else:
         return render(request, "error_400.html", status=400)

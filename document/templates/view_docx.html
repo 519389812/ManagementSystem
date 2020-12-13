@@ -67,7 +67,7 @@
                                         {% if filled == True %}
                                             <input type="{{ value.type_text }}" class="form-control" name="{{ value.en_name }}" placeholder="您已提交" disabled="disabled"/>
                                         {% else %}
-                                            <input type="{{ value.type_text }}" class="form-control" placeholder="请填写" name="{{ value.en_name }}"/>
+                                            <input type="{{ value.type_text }}" class="form-control" placeholder="请填写" name="{{ value.en_name }}" required/>
                                         {% endif %}
                                     </div>
                                 </div>
