@@ -1,6 +1,5 @@
 from django.contrib import admin
 import pandas as pd
-from worklord.models import Score, AddWorkload
 
 
 class AddWorkloadAdmin(admin.ModelAdmin):

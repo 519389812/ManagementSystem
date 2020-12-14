@@ -4,6 +4,18 @@ from team.models import Department
 from user.models import User
 
 
+class PositionType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="岗位类别")
+
+    class Meta:
+        verbose_name = '岗位类别'
+        verbose_name_plural = "岗位类别"
+
+    def __str__(self):
+        return self.name
+
+
 class Position(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=300, unique=True, verbose_name="岗位名称")
@@ -103,7 +115,19 @@ class Shift(models.Model):
         return self.name
 
 
-class Rule(models.Model):
+class FrequencyRule(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="名称")
+
+    class Meta:
+        verbose_name = '规则'
+        verbose_name_plural = "规则"
+
+    def __str__(self):
+        return self.name
+
+
+class QuantityRule(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="名称")
 
@@ -119,7 +143,7 @@ class AddWorkload(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, related_name="user", on_delete=models.DO_NOTHING, verbose_name="登记人")
     position = models.ForeignKey(Position, on_delete=models.DO_NOTHING, verbose_name="岗位")
-    worktime = models.CharField(max_length=1000, verbose_name="工作时长")
+    working_time = models.CharField(max_length=1000, verbose_name="工作时长")
     department = models.ForeignKey(Department, on_delete=models.DO_NOTHING, verbose_name="指派分队")
     created_time = models.CharField(max_length=100, verbose_name="工作量所属日期")
     remark = models.CharField(max_length=1000, verbose_name="备注")
