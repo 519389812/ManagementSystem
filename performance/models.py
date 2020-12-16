@@ -1,6 +1,5 @@
 from django.db import models
 import django.utils.timezone as timezone
-from team.models import Department
 from user.models import User
 
 
