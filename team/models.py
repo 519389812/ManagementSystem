@@ -11,6 +11,7 @@ class Team(models.Model):
     class Meta:
         verbose_name = "分组"
         verbose_name_plural = "分组"
+        ordering = ["related_parent"]
 
     def get_related_parent_name(self):
         related_parent_id_list = json.loads(self.related_parent)
