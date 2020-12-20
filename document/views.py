@@ -20,6 +20,9 @@ import numpy as np
 import base64
 import hashlib
 from Cryptodome.Cipher import AES
+from user.models import User
+from team.models import Team
+from django.db.models import Q
 
 
 time_zone = pytz_timezone(TIME_ZONE)
@@ -128,7 +131,11 @@ def init_docx(request):
         document_handler_template, _ = create_docx_handler(templates_dir + template_name + '.docx', 'python-docx')
         variable_dict = get_variable_list(document_handler_template, '_', -1, r'[a-z0-9]+_i[a-z]_')
         docx_html = docx_to_html(source_path)
-        return render(request, "init_docx.html", {"template_name": template_name, "docx_html": docx_html, "variable_dict": variable_dict})
+        if not request.user.is_superuser:
+            team_list = list(request.user.team.all().values("id", "name", "parent__name"))
+        else:
+            team_list = list(Team.objects.all().values("id", "name", "parent__name"))
+        return render(request, "init_docx.html", {"template_name": template_name, "docx_html": docx_html, "variable_dict": variable_dict, "team_list": team_list})
     else:
         return render(request, "error_400.html", status=400)
 
@@ -140,12 +147,17 @@ def write_init_docx(request, template_name):
         docx_name = params["docx_name"]
         close_datetime = params['close_datetime']
         close_datetime = time_zone.localize(datetime.datetime.strptime(close_datetime, "%Y-%m-%dT%H:%M"))
+        team_id_list = [int(i) for i in request.POST.getlist("team")]
         del(params['docx_name'])
         del(params['csrfmiddlewaretoken'])
         del(params['close_datetime'])
+        del(params['team'])
         content = json.dumps(params)
         docx_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        DocxInit.objects.create(id=docx_id, user=request.user, template_name=template_name, docx_name=docx_name, content=content, close_datetime=close_datetime)
+        docx_init_object = DocxInit.objects.create(id=docx_id, user=request.user, template_name=template_name, docx_name=docx_name, content=content, close_datetime=close_datetime)
+        for team_id in team_id_list:
+            team_object = Team.objects.get(id=team_id)
+            docx_init_object.objects.team.add(team_object)
         return redirect(reverse("view_docx", args=[docx_id]))
     else:
         return render(request, "error_400.html", status=400)

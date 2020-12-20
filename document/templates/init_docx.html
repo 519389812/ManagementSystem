@@ -73,6 +73,17 @@
                                 <input type="datetime-local" class="form-control" name="close_datetime"/>
                             </div>
                         </div>
+                        <div class="control-group form-group">
+                            <label>目标组（多选）</label>
+                            {% for team in team_list %}
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" value="{{ team.id }}" title="{{ team.name }}" name="team">
+                                    {{ team.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
                         <span class="inpug-group-append">
                             <button type="submit" class="btn btn-secondary" id="confirm_button">确定</button>
                         </span>

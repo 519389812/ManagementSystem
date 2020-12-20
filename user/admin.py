@@ -14,8 +14,7 @@ class CustomUserAdmin(UserAdmin):
         ('Important dates', {'fields': ('last_login', 'ip_address', 'date_joined')}),
     )
     list_display = ('username', 'last_name', 'first_name', 'last_login', 'ip_address', 'is_active')
-    filter_horizontal = ('team', )
-
+    filter_horizontal = ('groups', 'user_permissions', 'team', )
     # readonly_fields = ('branch_id',)
 
     # def get_readonly_fields(self, request, obj=None):

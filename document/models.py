@@ -1,5 +1,6 @@
 from django.db import models
 from user.models import User
+from team.models import Team
 
 
 class DocxInit(models.Model):
@@ -8,6 +9,7 @@ class DocxInit(models.Model):
     template_name = models.CharField(max_length=30, verbose_name="模板名")
     docx_name = models.CharField(max_length=30, verbose_name="文档名")
     content = models.TextField(max_length=500, verbose_name="内容")
+    team = models.ManyToManyField(Team, verbose_name="目标组")
     version = models.IntegerField(default=0, verbose_name="版本号")
     create_datetime = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
     edit_datetime = models.DateTimeField(auto_now=True, verbose_name="最新修改时间")
