@@ -4,7 +4,7 @@
 <head>
     {% load static %}
     {% include "head.html" %}
-    <title>404</title>
+    <title>Not accessible</title>
 
 </head>
 
@@ -17,17 +17,17 @@
 <div class="container">
 
     <!-- Page Heading/Breadcrumbs -->
-    <h1 class="mt-4 mb-3">400
-        <small>请求错误</small>
+    <h1 class="mt-4 mb-3">Not accessible
+        <small>无权限查看</small>
     </h1>
 
     <ol class="breadcrumb">
         {% include "route.html" %}
-        <li class="breadcrumb-item active">400</li>
+        <li class="breadcrumb-item active">Not accessible</li>
     </ol>
 
     <div class="jumbotron">
-        <h1 class="display-5">请求错误！</h1>
+        <h1 class="display-5">您没有无权限查看该内容！</h1>
         <br>
         {% include "error_redirect.html" %}
     </div>

@@ -11,7 +11,7 @@ import math
 from urllib import parse
 from django.utils import timezone
 from ManagementSystem.settings import TIME_ZONE
-from user.views import check_authority, check_is_touch_capable
+from user.views import check_authority, check_is_touch_capable, check_accessible
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.views.decorators.csrf import csrf_exempt
 import zipfile
@@ -20,7 +20,6 @@ import numpy as np
 import base64
 import hashlib
 from Cryptodome.Cipher import AES
-from user.models import User
 from team.models import Team
 from django.db.models import Q
 
@@ -147,7 +146,7 @@ def write_init_docx(request, template_name):
         docx_name = params["docx_name"]
         close_datetime = params['close_datetime']
         close_datetime = time_zone.localize(datetime.datetime.strptime(close_datetime, "%Y-%m-%dT%H:%M"))
-        team_id_list = [int(i) for i in request.POST.getlist("team")]
+        team_id_list = request.POST.getlist("team")
         del(params['docx_name'])
         del(params['csrfmiddlewaretoken'])
         del(params['close_datetime'])
@@ -155,9 +154,11 @@ def write_init_docx(request, template_name):
         content = json.dumps(params)
         docx_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         docx_init_object = DocxInit.objects.create(id=docx_id, user=request.user, template_name=template_name, docx_name=docx_name, content=content, close_datetime=close_datetime)
-        for team_id in team_id_list:
-            team_object = Team.objects.get(id=team_id)
-            docx_init_object.objects.team.add(team_object)
+        if len(team_id_list) > 0:
+            team_id_list = [int(i) for i in team_id_list]
+            for team_id in team_id_list:
+                team_object = Team.objects.get(id=team_id)
+                docx_init_object.team.add(team_object)
         return redirect(reverse("view_docx", args=[docx_id]))
     else:
         return render(request, "error_400.html", status=400)
@@ -178,6 +179,7 @@ def split_list_by_n(list_collection, n):
 
 
 @check_authority
+@check_accessible(DocxInit)
 def view_docx(request, docx_id, info=""):
     if request.method == "GET":
         docx_object = DocxInit.objects.filter(id=docx_id)
@@ -253,6 +255,7 @@ def decrypt(data, key):
 
 @check_authority
 @check_is_touch_capable
+@check_accessible(DocxInit)
 def fill_docx(request, docx_id, need_signature):
     if request.method == "POST":
         try:

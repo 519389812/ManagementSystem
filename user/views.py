@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 import uuid
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 # from django.utils import timezone
+from django.http import Http404
 
 
 def check_authority(func):
@@ -34,6 +35,25 @@ def check_is_touch_capable(func):
                 return redirect("/")
         return func(*args, **kwargs)
     return wrapper
+
+
+# 仅适用于嵌套在第一个参数是requests,第二个参数是object_id的函数上
+def check_accessible(model_object):
+    def func_wrapper(func):
+        def args_wrapper(*args, **kwargs):
+            try:
+                obj = model_object.objects.get(id=args[1])
+            except:
+                return redirect('/error_404')
+            if args[0].user.is_superuser:
+                return func(*args, **kwargs)
+            accessible_queryset = obj.team.all()
+            if len(accessible_queryset) == 0 or len(args[0].user.team.all() & accessible_queryset) > 0:
+                return func(*args, **kwargs)
+            else:
+                return redirect('/error_not_accessible')
+        return args_wrapper
+    return func_wrapper
 
 
 def home(request):

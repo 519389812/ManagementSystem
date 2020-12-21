@@ -35,6 +35,7 @@ urlpatterns = [
     path('', main_views.home, name="home"),
     path('error_404/', main_views.error_404, name="error_404"),
     path('error_400/', main_views.error_400, name="error_400"),
+    path('error_not_accessible/', main_views.error_not_accessible, name="error_not_accessible"),
     path('contact/', main_views.contact, name="contact"),
     path('about/', main_views.about, name="about"),
 

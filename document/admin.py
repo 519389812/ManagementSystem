@@ -13,7 +13,7 @@ class DocxInitAdmin(admin.ModelAdmin):
     # search_fields = ()
     # date_hierarchy = 'create_datetime'  # 详细时间分层筛选
     # list_filter = ()
-    # filter_horizontal = ()  # 设置多对多字段的筛选器
+    filter_horizontal = ("team", )  # 设置多对多字段的筛选器
 
     def save_model(self, request, obj, form, change):
         if form.is_valid():
