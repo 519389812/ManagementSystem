@@ -3,6 +3,22 @@ import django.utils.timezone as timezone
 from user.models import User
 
 
+class Rule(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="名称")
+    type = models.CharField(max_length=100, choices=(("频率", "frequency"), ("数量", "quantity")), verbose_name="类别")
+    range = models.CharField(max_length=100, verbose_name="范围")
+    condition = models.CharField(max_length=100, verbose_name="条件")
+    calculation = models.CharField(max_length=100, verbose_name="计算方法")
+
+    class Meta:
+        verbose_name = '规则'
+        verbose_name_plural = "规则"
+
+    def __str__(self):
+        return self.name
+
+
 class PositionType(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="岗位类别")
@@ -105,34 +121,11 @@ class Shift(models.Model):
     score = models.CharField(max_length=100, verbose_name="班次基础分")
     workload = models.FloatField(verbose_name="班次基础工作量")
     bonus = models.FloatField(verbose_name="班次基础奖金")
+    rule = models.ManyToManyField(Rule)
 
     class Meta:
         verbose_name = '班次'
         verbose_name_plural = "班次"
-
-    def __str__(self):
-        return self.name
-
-
-class FrequencyRule(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="名称")
-
-    class Meta:
-        verbose_name = '规则'
-        verbose_name_plural = "规则"
-
-    def __str__(self):
-        return self.name
-
-
-class QuantityRule(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="名称")
-
-    class Meta:
-        verbose_name = '规则'
-        verbose_name_plural = "规则"
 
     def __str__(self):
         return self.name

@@ -59,7 +59,7 @@ class TeamAdmin(admin.ModelAdmin):
                 db_field.verbose_name,
                 db_field.name in self.filter_vertical
             )
-        return super(TeamAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super(TeamAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_related_parent(self, parent_object, related_parent):
         while True:

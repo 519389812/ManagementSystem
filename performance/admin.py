@@ -1,5 +1,24 @@
 from django.contrib import admin
 import pandas as pd
+from performance.models import Rule
+
+
+class RuleAdmin(admin.ModelAdmin):
+    list_display = ('name', 'type', 'range', 'condition', 'calculation')
+
+    def get_form(self, request, obj=None, **kwargs):
+        help_texts = {'range': '仅在类别为频率时需填写，内容为天数，表示在多少天范围内发生的频率'}
+        kwargs.update({'help_texts': help_texts})
+        return super(RuleAdmin, self).get_form(request, obj, **kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request, *args, **kwargs):
+        if db_field.name == 'parent_comment':
+            try:
+                obj_id = request.resolver_match.args[0]  # 这里获取当前对象id，非常重要
+                kwargs['queryset'] = Comment.objects.filter(parent_comment=None).exclude(id=int(obj_id))  # 添加过滤条件
+            except:
+                kwargs['queryset'] = Comment.objects.filter(parent_comment=None)
+        return super(CommentAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class AddWorkloadAdmin(admin.ModelAdmin):
@@ -79,6 +98,9 @@ class PenaltyAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'type', 'name', 'score',)  # 设置页面上哪个字段可单击进入详细页面
     # list_editable = ['name', 'sex', 'staff_id']  # 直接编辑字段
     # fields = ('category', 'book')  # 设置添加/修改详细信息时，哪些字段显示，在这里 remark 字段将不显示
+
+
+def
 
 
 admin.site.register(Shift, ShiftAdmin)
