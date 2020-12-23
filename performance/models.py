@@ -1,14 +1,39 @@
 from django.db import models
 import django.utils.timezone as timezone
 from user.models import User
+from team.models import Team
+
+
+class Level(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="程度名称")
+
+    class Meta:
+        verbose_name = '程度'
+        verbose_name_plural = "程度"
+
+    def __str__(self):
+        return self.name
+
+
+class RuleCondition(models.Model):
+    id = models.AutoField(primary_key=True)
+    reference = models.CharField(max_length=100, unique=True, verbose_name="参照")
+    symbol = models.CharField(max_length=100, verbose_name="符号")
+    case = models.CharField(max_length=100, verbose_name="条件")
+
+    class Meta:
+        verbose_name = '规则类别'
+        verbose_name_plural = "规则类别"
+
+    def __str__(self):
+        return self.id
 
 
 class Rule(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="名称")
-    type = models.CharField(max_length=100, choices=(("频率", "frequency"), ("数量", "quantity")), verbose_name="类别")
-    range = models.CharField(max_length=100, verbose_name="范围")
-    condition = models.CharField(max_length=100, verbose_name="条件")
+    condition = models.ManyToManyField(RuleCondition, verbose_name="条件")
     calculation = models.CharField(max_length=100, verbose_name="计算方法")
 
     class Meta:
@@ -133,13 +158,62 @@ class Shift(models.Model):
 
 class AddWorkload(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, related_name="user", on_delete=models.DO_NOTHING, verbose_name="登记人")
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="登记人")
+    shift = models.ForeignKey(Shift, on_delete=models.DO_NOTHING, verbose_name="班次")
     position = models.ForeignKey(Position, on_delete=models.DO_NOTHING, verbose_name="岗位")
-    working_time = models.CharField(max_length=1000, verbose_name="工作时长")
-    department = models.ForeignKey(Department, on_delete=models.DO_NOTHING, verbose_name="指派分队")
-    created_time = models.CharField(max_length=100, verbose_name="工作量所属日期")
-    remark = models.CharField(max_length=1000, verbose_name="备注")
-    updated_time = models.DateTimeField(blank=True, auto_now_add=True, verbose_name="登记日期")
+    start_datetime = models.DateTimeField(verbose_name="开始时间")
+    end_datetime = models.DateTimeField(verbose_name="结束时间")
+    team = models.ForeignKey(Team, on_delete=models.DO_NOTHING, verbose_name="指派")
+    remark = models.TextField(max_length=1000, verbose_name="备注")
+    created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
+    verified = models.BooleanField(verbose_name="审核状态")
+    verified_user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="审核人")
+    verified_datetime = models.DateTimeField(blank=True, verbose_name="审核时间")
+
+    class Meta:
+        verbose_name = '工作量'
+        verbose_name_plural = "工作量"
+
+    def __str__(self):
+        return self.id
+
+
+class ReferenceType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="类型名称")
+
+    class Meta:
+        verbose_name = '涉及类别'
+        verbose_name_plural = "涉及类别"
+
+    def __str__(self):
+        return self.name
+
+
+class Reference(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(ReferenceType, on_delete=models.CASCADE, verbose_name="涉及类别")
+    name = models.CharField(max_length=100, unique=True, verbose_name="涉及内容")
+
+    class Meta:
+        verbose_name = '涉及'
+        verbose_name_plural = "涉及"
+
+    def __str__(self):
+        return self.name
+
+
+class AddReward(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="责任人")
+    date = models.DateTimeField(verbose_name="日期")
+    reward = models.ForeignKey(Reward, on_delete=models.DO_NOTHING, verbose_name="奖惩")
+    reference = models.ManyToManyField(Reference, verbose_name="涉及内容")
+    title = models.CharField(max_length=500, verbose_name="标题")
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, verbose_name="影响程度")
+    content = models.TextField(max_length=1000, verbose_name="详细情况")
+    created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
+    created_user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="登记人")
 
     class Meta:
         verbose_name = '工作量登记'
@@ -147,22 +221,3 @@ class AddWorkload(models.Model):
 
     def __str__(self):
         return self.id
-
-
-class Score(models.Model):
-    id = models.AutoField(primary_key=True)
-    employee_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, to_field="id", related_name="employee",
-                                    verbose_name="员工姓名")
-    # position_name = models.ManyToManyField(Position, verbose_name="岗位")
-    # # position_staff_score = models.FloatField(max_length=1000, verbose_name="岗位工作量")
-    # shift_name = models.ManyToManyField(Shift, verbose_name="班次")
-    skill_score = models.FloatField(max_length=1000, verbose_name="技能分数")
-    penalty_score = models.FloatField(max_length=1000, verbose_name="奖惩得分")
-    po_score = models.FloatField(max_length=1000, verbose_name="岗位分数")
-    total_score = models.FloatField(max_length=1000, verbose_name="总分")
-    date = models.DateField(default=timezone.now, verbose_name="日期")
-    remark = models.TextField(max_length=1000, blank=True, null=True, verbose_name="备注")
-
-    class Meta:
-        verbose_name = '统计'
-        verbose_name_plural = "统计"
