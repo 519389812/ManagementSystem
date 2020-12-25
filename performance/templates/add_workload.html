@@ -15,12 +15,12 @@
 <div class="container">
 
     <!-- Page Heading/Breadcrumbs -->
-    <h1 class="mt-4 mb-3">人员管理
+    <h1 class="mt-4 mb-3">绩效管理
         <small>模块</small>
     </h1>
     <ol class="breadcrumb">
         {% include "route.html" %}
-        {% include "route_workload.html" %}
+        {% include "route_performance.html" %}
         <li class="breadcrumb-item active">绩效登记</li>
     </ol>
     <!-- Contact Form -->
@@ -28,16 +28,13 @@
     {% block content %}
     <div class="row">
         <div class="col-xs-12 col-md-8">
-            <h3>用户登录</h3>
+            <h3>绩效登记</h3>
             <form name="loginForm" id="loginForm" action="{% url 'add_workload' %}" method="post">
                 {% csrf_token %}
                 <div class="control-group form-group">
                     <div class="controls">
                         <label>登记人:</label>
-                        <input type="text" name="user" class="form-control" id="user" disabled="disabled"
-                               value="{{ request.user.get_full_name }}">
-                        <p id="name-validate"></p>
-                        <p class="help-block" id="user_validate"></p>
+                        <input type="text" name="user" class="form-control" id="user" disabled="disabled" value="{{ request.user.get_full_name }}">
                     </div>
                 </div>
                 <div class="control-group form-group">
@@ -45,46 +42,42 @@
                         <label>岗位:</label>
                         <select id="position" name="position" required="required" class="form-control">
                             {% for position in position_list %}
-                            <option value="{{ position }}">{{ position }}</option>
+                                <option value="{{ position.id }}">{{ position.name }}</option>
                             {% endfor %}
                         </select>
-                        <p class="help-block" id="position_validate"></p>
                     </div>
                 </div>
                 <div class="control-group form-group">
                     <div class="controls">
-                        <label>工作时长:</label>
-                        <input type="number" name="worktime" required="required" class="form-control" id="worktime"
+                        <label>开始时间:</label>
+                        <input type="datetime-local" name="start_datetime" required="required" class="form-control" id="start_datetime"
                                placeholder="请输入工作时长">
-                        <p class="help-block" id="worktime_validate"></p>
                     </div>
                 </div>
                 <div class="control-group form-group">
                     <div class="controls">
-                        <label>指派分队:</label>
-                        <select id="department" name="department" required="required" class="form-control">
-                            {% for department in department_list %}
-                            <option value="{{ department }}">{{ department }}</option>
+                        <label>结束时间:</label>
+                        <input type="datetime-local" name="end_datetime" required="required" class="form-control" id="end_datetime"
+                               placeholder="请输入工作时长">
+                    </div>
+                </div>
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>指派人:</label>
+                        <select id="assigned_team" name="assigned_team" required="required" class="form-control">
+                            {% for team in team_list %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
                             {% endfor %}
                         </select>
-                        <p class="help-block" id="department_validate"></p>
-                    </div>
-                </div>
-                <div class="control-group form-group">
-                    <div class="controls">
-                        <label>日期:</label>
-                        <input type="date" name="created_time" class="form-control" required="required" id="created_time"  max="date_now" placeholder="请输入工作量所属日期" >
-                        <p class="help-block" id="created_time_validate"></p>
                     </div>
                 </div>
                 <div class="control-group form-group">
                     <div class="controls">
                         <label>备注:</label>
                         <textarea name="remark" class="form-control" id="remark"></textarea>
-                        <p class="help-block" id="remark_validate"></p>
                     </div>
                 </div>
-                  <button type="submit" class="btn btn-primary" id="submit">提交</button>
+                <button type="submit" class="btn btn-primary" id="submit">提交</button>
             </form>
         </div>
         <div class="col-md-4">
@@ -109,7 +102,7 @@
 <script>
 
     $(function(){
-           //得到当前时间
+        //得到当前时间
         var date_now = new Date();
         //得到当前年份
         var year = date_now.getFullYear();

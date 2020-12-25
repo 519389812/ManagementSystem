@@ -19,6 +19,7 @@ from . import views as main_views
 from document import views as document_views
 from user import views as user_views
 from quickcheck import views as quickcheck_views
+from performance import views as performance_views
 from django.shortcuts import render
 from ManagementSystem.views import error_404, error_400, error_403, error_500
 
@@ -67,6 +68,8 @@ urlpatterns = [
     path('document/delete_template/', document_views.delete_template, name="delete_template"),
     path('document/fill_signature/', document_views.fill_signature, name="fill_signature"),
     path('document/supervisor_signature/', document_views.supervisor_signature, name="supervisor_signature"),
+    path('document/supervise_docx/', document_views.supervise_docx, name="supervise_docx"),
+    path('document/show_docx_html/', document_views.show_docx_html, name="show_docx_html"),
     re_path('document/translate_words/(.+)/$', document_views.translate_words, name="translate_words"),
     re_path('document/select_template/(.+)/$', document_views.select_template, name="select_template"),
     re_path('document/upload_template/(.+)/$', document_views.upload_template, name="upload_template"),
@@ -76,7 +79,6 @@ urlpatterns = [
     re_path('document/fill_docx/(.+)/(.+)/$', document_views.fill_docx, name="fill_docx"),
     re_path('document/close_docx/(.+)/$', document_views.close_docx, name="close_docx"),
     re_path('document/download_docx/(.+)/$', document_views.download_docx, name="download_docx"),
-    re_path('document/supervise_docx/', document_views.supervise_docx, name="supervise_docx"),
 
     # quickcheck
     path('quickcheck/', quickcheck_views.quickcheck, name="quickcheck"),
@@ -84,4 +86,8 @@ urlpatterns = [
     path('quickcheck/outbound_limit/singapore', quickcheck_views.outbound_limit_singapore, name="outbound_limit_singapore"),
     path('quickcheck/outbound_limit/cambodia', quickcheck_views.outbound_limit_cambodia, name="outbound_limit_cambodia"),
     path('quickcheck/outbound_limit/thailand', quickcheck_views.outbound_limit_thailand, name="outbound_limit_thailand"),
+
+    # performance
+    path('performance/', performance_views.performance, name="performance"),
+    path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
 ]

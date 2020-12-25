@@ -102,7 +102,7 @@ def docx_to_html(docx_path):
     style_start = docx_html.find("<style>")
     style_end = docx_html.find("</style>")
     docx_html = docx_html[:style_start] + docx_html[style_end:]
-    docx_html = docx_html.replace("_", "&ensp;")
+    docx_html = '<div>' + docx_html.replace("_", "&ensp;") + '</div>'
     return docx_html
 
 

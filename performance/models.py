@@ -4,37 +4,27 @@ from user.models import User
 from team.models import Team
 
 
-class Level(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="程度名称")
-
-    class Meta:
-        verbose_name = '程度'
-        verbose_name_plural = "程度"
-
-    def __str__(self):
-        return self.name
-
-
 class RuleCondition(models.Model):
     id = models.AutoField(primary_key=True)
     reference = models.CharField(max_length=100, unique=True, verbose_name="参照")
     symbol = models.CharField(max_length=100, verbose_name="符号")
     case = models.CharField(max_length=100, verbose_name="条件")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '规则类别'
         verbose_name_plural = "规则类别"
 
     def __str__(self):
-        return self.id
+        return self.reference + self.symbol + self.case
 
 
 class Rule(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="名称")
-    condition = models.ManyToManyField(RuleCondition, verbose_name="条件")
+    condition = models.ManyToManyField(RuleCondition, blank=True, verbose_name="条件")
     calculation = models.CharField(max_length=100, verbose_name="计算方法")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '规则'
@@ -44,9 +34,24 @@ class Rule(models.Model):
         return self.name
 
 
+class Level(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="程度名称")
+    rule = models.ManyToManyField(Rule, blank=True, verbose_name="规则")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
+
+    class Meta:
+        verbose_name = '程度'
+        verbose_name_plural = "程度"
+
+    def __str__(self):
+        return self.name
+
+
 class PositionType(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="岗位类别")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '岗位类别'
@@ -58,10 +63,12 @@ class PositionType(models.Model):
 
 class Position(models.Model):
     id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(PositionType, on_delete=models.CASCADE, verbose_name="岗位类别")
     name = models.CharField(max_length=300, unique=True, verbose_name="岗位名称")
     score = models.FloatField(verbose_name="岗位基础分数")
     workload = models.FloatField(verbose_name="岗位基础工作量")
     bonus = models.FloatField(verbose_name="岗位基础奖金")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '岗位'
@@ -74,6 +81,7 @@ class Position(models.Model):
 class SkillType(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="技能类别")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '技能类别'
@@ -90,6 +98,8 @@ class Skill(models.Model):
     score = models.FloatField(verbose_name="技能基础分数")
     workload = models.FloatField(verbose_name="技能基础工作量")
     bonus = models.FloatField(verbose_name="技能基础奖金")
+    rule = models.ManyToManyField(Rule, blank=True, verbose_name="规则")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '技能'
@@ -102,6 +112,7 @@ class Skill(models.Model):
 class RewardType(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="奖惩类别")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '奖惩类别'
@@ -115,9 +126,11 @@ class Reward(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(RewardType, on_delete=models.CASCADE, verbose_name="奖惩类别")
     name = models.CharField(max_length=100, unique=True, verbose_name="奖惩名称")
-    score = models.CharField(max_length=100, verbose_name="奖惩基础分")
+    score = models.FloatField(verbose_name="奖惩基础分")
     workload = models.FloatField(verbose_name="奖惩基础工作量")
     bonus = models.FloatField(verbose_name="奖惩基础奖金")
+    rule = models.ManyToManyField(Rule, blank=True, verbose_name="规则")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '奖惩'
@@ -130,6 +143,7 @@ class Reward(models.Model):
 class ShiftType(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="班次类别")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '班次类别'
@@ -143,10 +157,10 @@ class Shift(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(ShiftType, on_delete=models.CASCADE, verbose_name="班次类别")
     name = models.CharField(max_length=100, unique=True, verbose_name="班次")
-    score = models.CharField(max_length=100, verbose_name="班次基础分")
+    score = models.FloatField(verbose_name="班次基础分")
     workload = models.FloatField(verbose_name="班次基础工作量")
     bonus = models.FloatField(verbose_name="班次基础奖金")
-    rule = models.ManyToManyField(Rule)
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '班次'
@@ -158,29 +172,31 @@ class Shift(models.Model):
 
 class AddWorkload(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="登记人")
+    user = models.ForeignKey(User, related_name='workload_user', on_delete=models.DO_NOTHING, verbose_name="登记人")
     shift = models.ForeignKey(Shift, on_delete=models.DO_NOTHING, verbose_name="班次")
     position = models.ForeignKey(Position, on_delete=models.DO_NOTHING, verbose_name="岗位")
     start_datetime = models.DateTimeField(verbose_name="开始时间")
     end_datetime = models.DateTimeField(verbose_name="结束时间")
-    team = models.ForeignKey(Team, on_delete=models.DO_NOTHING, verbose_name="指派")
-    remark = models.TextField(max_length=1000, verbose_name="备注")
+    assigned_team = models.ForeignKey(Team, related_name='assigned_team', on_delete=models.DO_NOTHING, verbose_name="指派")
+    remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
-    verified = models.BooleanField(verbose_name="审核状态")
-    verified_user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="审核人")
+    verified = models.BooleanField(default=False, verbose_name="审核状态")
+    verified_user = models.ForeignKey(User, blank=True, related_name='verified_user', on_delete=models.DO_NOTHING, verbose_name="审核人")
     verified_datetime = models.DateTimeField(blank=True, verbose_name="审核时间")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
-        verbose_name = '工作量'
-        verbose_name_plural = "工作量"
+        verbose_name = '工作量记录'
+        verbose_name_plural = "工作量记录"
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 class ReferenceType(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="类型名称")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '涉及类别'
@@ -193,11 +209,12 @@ class ReferenceType(models.Model):
 class Reference(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(ReferenceType, on_delete=models.CASCADE, verbose_name="涉及类别")
-    name = models.CharField(max_length=100, unique=True, verbose_name="涉及内容")
+    name = models.CharField(max_length=100, unique=True, verbose_name="涉及内容名称")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
-        verbose_name = '涉及'
-        verbose_name_plural = "涉及"
+        verbose_name = '涉及内容'
+        verbose_name_plural = "涉及内容"
 
     def __str__(self):
         return self.name
@@ -205,19 +222,20 @@ class Reference(models.Model):
 
 class AddReward(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="责任人")
+    user = models.ForeignKey(User, related_name='reward_user', on_delete=models.DO_NOTHING, verbose_name="责任人")
     date = models.DateTimeField(verbose_name="日期")
     reward = models.ForeignKey(Reward, on_delete=models.DO_NOTHING, verbose_name="奖惩")
-    reference = models.ManyToManyField(Reference, verbose_name="涉及内容")
+    reference = models.ManyToManyField(Reference, blank=True, verbose_name="涉及内容")
     title = models.CharField(max_length=500, verbose_name="标题")
     level = models.ForeignKey(Level, on_delete=models.CASCADE, verbose_name="影响程度")
-    content = models.TextField(max_length=1000, verbose_name="详细情况")
+    content = models.TextField(max_length=1000, blank=True, verbose_name="详细情况")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     created_user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="登记人")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
-        verbose_name = '工作量登记'
-        verbose_name_plural = "工作量登记"
+        verbose_name = '奖惩记录'
+        verbose_name_plural = "奖惩记录"
 
     def __str__(self):
-        return self.id
+        return str(self.id)

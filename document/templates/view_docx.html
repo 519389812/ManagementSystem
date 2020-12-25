@@ -39,10 +39,8 @@
             <hr>
 
             <!-- Preview Image -->
-            {% for docx_html in docx_html_list %}
-                <div>{{ docx_html|safe }}</div>
-            {% endfor %}
-            <p>预览<b>最多显示3页</b>，其余请在文档中查看</p>
+            <div id="docx_html_content"></div>
+            <p><button id="show_docx_html" name="show_docx_html" class="btn btn-link">点击此处</button>查看填写情况，<b>最多显示3页</b>，其余请下载查看</p>
 
 
         </div>
@@ -187,6 +185,15 @@
                 makeCode();
             }
         });
+
+    $(document).ready(function(){
+        $('#show_docx_html').click(function(){
+            var docx_id = {{ docx_dict.id }};
+            $.get("/document/show_docx_html/",{'docx_id':docx_id}, function(response){
+                $('#docx_html_content').html(response);
+            });
+        });
+    });
  </script>
 
 </body>

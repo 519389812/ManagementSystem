@@ -7,12 +7,6 @@ import json
 class DocxInitAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "template_name", "docx_name", "content", "version", "create_datetime", "edit_datetime")
     list_display_links = ("id",)
-    # fields = ()  # 设置添加/修改详细信息时，哪些字段显示，在这里 remark 字段将不显示
-    # readonly_fields = ()
-    # actions = []
-    # search_fields = ()
-    # date_hierarchy = 'create_datetime'  # 详细时间分层筛选
-    # list_filter = ()
     filter_horizontal = ("team", )  # 设置多对多字段的筛选器
 
     def save_model(self, request, obj, form, change):
@@ -24,13 +18,21 @@ class DocxInitAdmin(admin.ModelAdmin):
 
 
 class ContentStorageAdmin(admin.ModelAdmin):
-    list_display = ("id", "docx", "user", "content", "signature", "create_datetime", "edit_datetime")
+    list_display = ("id", "docx", "user", "content", "get_signature", "create_datetime", "edit_datetime")
     list_display_links = ("id",)
+
+    def get_signature(self, obj):
+        return "是" if len(obj.signature) > 0 else ""
+    get_signature.short_description = "是否签名"
 
 
 class SignatureStorageAdmin(admin.ModelAdmin):
-    list_display = ("id", "docx", "user", "content", "signature", "create_datetime")
+    list_display = ("id", "docx", "user", "content", "get_signature", "create_datetime")
     list_display_links = ("id",)
+
+    def get_signature(self, obj):
+        return "是" if len(obj.signature) > 0 else ""
+    get_signature.short_description = "是否签名"
 
 
 admin.site.register(DocxInit, DocxInitAdmin)

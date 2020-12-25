@@ -1,9 +1,8 @@
 from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
-from worklord.models import AddWorkload
-from rule.models import Position
-from team.models import Department
+from performance.models import Level, RuleCondition, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, AddWorkload, ReferenceType, Reference, AddReward
+from team.models import Team
 from user.views import check_authority
 
 
@@ -26,7 +25,6 @@ def get_addinfo_list_data(request, addinfos_all_list):
         page_range.insert(0, 1)
     if page_range[-1] != paginator.num_pages:
         page_range.append(paginator.num_pages)
-
     # 获取日期归档对应的登记数量
     addinfo_dates = addinfo.objects.dates('created_time', 'month', order="DESC")
     addinfo_dates_dict = {}
@@ -43,8 +41,26 @@ def get_addinfo_list_data(request, addinfos_all_list):
     return context
 
 
-def workload_home(request):
-    return render(request, "workload_home.html")
+def performance(request):
+    return render(request, "performance.html")
+
+
+@check_authority
+def add_workload(request):
+    if request.method == "POST":
+        position = request.POST.get("position", "")
+        position = Position.objects.get(name=position)
+        worktime = request.POST['worktime']
+        department = request.POST.get('department', "")
+        department = Team.objects.get(name=department)
+        created_time = request.POST['created_time']
+        remark = request.POST['remark']
+        AddWorkload.objects.create(user=request.user, position=position, worktime=worktime, department=department, created_time=created_time, remark=remark)
+        return redirect(reverse('add_workload'))
+    else:
+        position_list = list(Position.objects.all().values("id", "name"))
+        team_list = list(Team.objects.all().values("id", "name", "parent__name"))
+        return render(request, "add_workload.html", {"position_list": position_list, "team_list": team_list})
 
 
 @check_authority
@@ -62,30 +78,6 @@ def approval(request):
 def addinfo(request):
     addinfos_list_obj = list(AddWorkload.objects.all())
     return render(request, 'addworkload_info.html', {'addinfo_list': addinfos_list_obj})
-
-
-@check_authority
-def add_workload(request):
-    if request.method == "POST":
-        user = request.user
-        position = request.POST.get("position", "")
-        position = Position.objects.get(name=position)
-        print(position)
-        worktime = request.POST['worktime']
-        department = request.POST.get('department', "")
-        department = Department.objects.get(name=department)
-        created_time = request.POST['created_time']
-        remark = request.POST['remark']
-        AddWorkload.objects.create(user=user, position=position, worktime=worktime, department=department,
-                                   created_time=created_time, remark=remark)
-        return redirect(reverse('add_workload'))
-    elif request.method == "GET":
-        position_list = list(Position.objects.all().values_list("name"))
-        position_list = [position[0] for position in position_list]
-        department_list = list(Department.objects.all().values_list("name"))
-        department_list = [department[0] for department in department_list]
-        return render(request, "add_workload.html",
-                      {"position_list": position_list, "department_list": department_list})
 
 
 @check_authority

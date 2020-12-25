@@ -45,22 +45,6 @@ class TeamAdmin(admin.ModelAdmin):
         return obj.branch.branch_id
     get_branch_name.short_description = "成员"
 
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        """
-        Get a form Field for a ManyToManyField.
-        """
-        # db_field.name 本模型下的字段名称
-        if db_field.name == "user":
-            # 过滤
-            kwargs["queryset"] = User.objects.filter(team_id=request.user.branch_id)
-            # filter_horizontal 保持横向展示
-            from django.contrib.admin import widgets
-            kwargs['widget'] = widgets.FilteredSelectMultiple(
-                db_field.verbose_name,
-                db_field.name in self.filter_vertical
-            )
-        return super(TeamAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
-
     def get_related_parent(self, parent_object, related_parent):
         while True:
             try:

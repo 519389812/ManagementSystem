@@ -22,6 +22,7 @@ import hashlib
 from Cryptodome.Cipher import AES
 from team.models import Team
 from django.db.models import Q
+from django.utils.safestring import mark_safe
 
 
 time_zone = pytz_timezone(TIME_ZONE)
@@ -150,7 +151,8 @@ def write_init_docx(request, template_name):
         del(params['docx_name'])
         del(params['csrfmiddlewaretoken'])
         del(params['close_datetime'])
-        del(params['team'])
+        if len(team_id_list) > 0:
+            del(params['team'])
         content = json.dumps(params)
         docx_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         docx_init_object = DocxInit.objects.create(id=docx_id, user=request.user, template_name=template_name, docx_name=docx_name, content=content, close_datetime=close_datetime)
@@ -189,17 +191,14 @@ def view_docx(request, docx_id, info=""):
         closed = check_docx_closed(timezone.localtime(docx_dict["close_datetime"]), timezone.localtime(timezone.now()))
         document_handler, document_template_handler = create_docx_handler(templates_dir + docx_dict["template_name"] + ".docx", "")
         content_variable_dict = get_variable_list(document_handler, '_', -1, r'[a-z0-9]+_n[a-z]_\d+')
-        count_variable_dict = get_variable_list(document_handler, '_', -1, r'[a-z0-9]+_a[a-z]_')
         supervisor_variable_dict = get_variable_list(document_handler, '_', -1, r'[a-z0-9]+_s[a-z]_')
         docx_signature_queryset = SignatureStorage.objects.filter(docx__id=docx_id)
         docx_signature_list = list(docx_signature_queryset.values("content", "signature"))
         for content in docx_signature_list:
             if content['content'].split("_")[0] in supervisor_variable_dict.keys():
                 del(supervisor_variable_dict[content['content'].split("_")[0]])
-        docx_signature_list = None if len(docx_signature_list) == 0 else docx_signature_list
         if len(content_variable_dict) == 0:
             return render(request, "error_403.html", status=403)
-        maximum = int(content_variable_dict[list(content_variable_dict.keys())[0]]["maximum"]) + 1
         need_signature = content_variable_dict.__contains__("signature")
         docx_content_queryset = ContentStorage.objects.filter(docx__id=docx_id)
         if docx_content_queryset.filter(user__id=request.user.id).count() > 0:
@@ -207,43 +206,66 @@ def view_docx(request, docx_id, info=""):
             signed = True if docx_content_queryset.filter(user__id=request.user.id)[0].signature != "" else False
         else:
             filled, signed = False, False
-        content_count = docx_content_queryset.values().count()
-        docx_path = storage_dir + docx_id + "_%s.docx"
-        docx_html_list = []
-        if content_count > 0:
-            if len(count_variable_dict) > 0:
-                auto_variable_dict = {}
-                data = pd.DataFrame([json.loads(i['content']) for i in list(docx_content_queryset.values("content"))])
-                data = data[list(count_variable_dict.keys())].apply(pd.to_numeric)
-                for key, value in count_variable_dict.items():
-                    auto_variable_dict[value['origin']] = str(sum(data[key]))
-                auto_variable_dict = json.dumps(auto_variable_dict)
-            else:
-                auto_variable_dict = None
-            if maximum == 1:
-                if filled:
-                    user_docx_content_list = docx_content_queryset.filter(user__id=request.user.id).values("content", "signature")
-                    write(document_template_handler, docx_path % 1, docx_dict["content"], user_docx_content_list, content_variable_dict, auto_variable_dict, docx_signature_list, maximum)
-                else:
-                    write(document_template_handler, docx_path % 1, docx_dict["content"])
-                docx_html_list.append(docx_to_html(docx_path % 1))
-            docx_content_list = docx_content_queryset.values("content", "signature").order_by('id')
-            docx_content_list = split_list_by_n(docx_content_list, maximum)
-            page = math.ceil(content_count / maximum) + 1
-            for i in range(1, page):
-                if page > 2:
-                    _, document_template_handler = create_docx_handler(templates_dir + docx_dict["template_name"] + ".docx", "python-docx-template")
-                write(document_template_handler, docx_path % i, docx_dict["content"], docx_content_list.__next__(), content_variable_dict, auto_variable_dict, docx_signature_list, maximum)
-                if maximum != 1:
-                    docx_html_list.append(docx_to_html(docx_path % i))
-        else:
-            write(document_template_handler, docx_path % 1, docx_dict["content"])
-            docx_html_list.append(docx_to_html(docx_path % 1))
         if need_signature:
             del(content_variable_dict["signature"])
-        return render(request, "view_docx.html", {"docx_dict": docx_dict, "docx_html_list": docx_html_list[:3], "content_variable_dict": content_variable_dict, "need_signature": need_signature, "filled": filled, "signed": signed, "closed": closed, "supervisor_variable_dict": supervisor_variable_dict, "info": info})
+        return render(request, "view_docx.html", {"docx_dict": docx_dict, "content_variable_dict": content_variable_dict, "need_signature": need_signature, "filled": filled, "signed": signed, "closed": closed, "supervisor_variable_dict": supervisor_variable_dict, "info": info})
     else:
         return render(request, "error_400.html", status=400)
+
+
+@check_authority
+def show_docx_html(request):
+    docx_id = request.GET['docx_id']
+    docx_object = DocxInit.objects.filter(id=docx_id)
+    if len(docx_object) == 0:
+        return
+    docx_dict = docx_object.values("template_name", "content")[0]
+    document_handler, document_template_handler = create_docx_handler(templates_dir + docx_dict["template_name"] + ".docx", "")
+    count_variable_dict = get_variable_list(document_handler, '_', -1, r'[a-z0-9]+_a[a-z]_')
+    docx_signature_queryset = SignatureStorage.objects.filter(docx__id=docx_id)
+    docx_signature_list = list(docx_signature_queryset.values("content", "signature"))
+    docx_signature_list = None if len(docx_signature_list) == 0 else docx_signature_list
+    content_variable_dict = get_variable_list(document_handler, '_', -1, r'[a-z0-9]+_n[a-z]_\d+')
+    maximum = int(content_variable_dict[list(content_variable_dict.keys())[0]]["maximum"]) + 1
+    docx_content_queryset = ContentStorage.objects.filter(docx__id=docx_id)
+    content_count = docx_content_queryset.values().count()
+    docx_path = storage_dir + docx_id + "_%s.docx"
+    docx_html_list = []
+    if docx_content_queryset.filter(user__id=request.user.id).count() > 0:
+        filled = True
+    else:
+        filled = False
+    if content_count > 0:
+        if len(count_variable_dict) > 0:
+            auto_variable_dict = {}
+            data = pd.DataFrame([json.loads(i['content']) for i in list(docx_content_queryset.values("content"))])
+            data = data[list(count_variable_dict.keys())].apply(pd.to_numeric)
+            for key, value in count_variable_dict.items():
+                auto_variable_dict[value['origin']] = str(sum(data[key]))
+            auto_variable_dict = json.dumps(auto_variable_dict)
+        else:
+            auto_variable_dict = None
+        if maximum == 1:
+            if filled:
+                user_docx_content_list = docx_content_queryset.filter(user__id=request.user.id).values("content", "signature")
+                write(document_template_handler, docx_path % 1, docx_dict["content"], user_docx_content_list, content_variable_dict, auto_variable_dict, docx_signature_list, maximum)
+            else:
+                write(document_template_handler, docx_path % 1, docx_dict["content"])
+            docx_html_list.append(docx_to_html(docx_path % 1))
+        docx_content_list = docx_content_queryset.values("content", "signature").order_by('id')
+        docx_content_list = split_list_by_n(docx_content_list, maximum)
+        page = math.ceil(content_count / maximum) + 1
+        for i in range(1, page):
+            if page > 2:
+                _, document_template_handler = create_docx_handler(templates_dir + docx_dict["template_name"] + ".docx", "python-docx-template")
+            write(document_template_handler, docx_path % i, docx_dict["content"], docx_content_list.__next__(), content_variable_dict, auto_variable_dict, docx_signature_list, maximum)
+            if maximum != 1:
+                docx_html_list.append(docx_to_html(docx_path % i))
+        docx_html = ''.join(docx_html_list)
+    else:
+        write(document_template_handler, docx_path % 1, docx_dict["content"])
+        docx_html = docx_to_html(docx_path % 1)
+    return HttpResponse(mark_safe(docx_html))
 
 
 def decrypt(data, key):
