@@ -132,7 +132,8 @@ def init_docx(request):
         variable_dict = get_variable_list(document_handler_template, '_', -1, r'[a-z0-9]+_i[a-z]_')
         docx_html = docx_to_html(source_path)
         if not request.user.is_superuser:
-            team_list = list(request.user.team.all().values("id", "name", "parent__name"))
+            team_id = str(request.user.team.id)
+            team_list = list(Team.objects.filter(related_parent__in=team_id).values("id", "name", "parent__name"))
         else:
             team_list = list(Team.objects.all().values("id", "name", "parent__name"))
         return render(request, "init_docx.html", {"template_name": template_name, "docx_html": docx_html, "variable_dict": variable_dict, "team_list": team_list})

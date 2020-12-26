@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate
 from django.utils.datastructures import MultiValueDictKeyError
 import re
 from user_agents import parse
+import json
 from urllib.parse import urlparse
 import uuid
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
@@ -47,11 +48,14 @@ def check_accessible(model_object):
                 return redirect('/error_404')
             if args[0].user.is_superuser:
                 return func(*args, **kwargs)
-            accessible_queryset = obj.team.all()
-            if len(accessible_queryset) == 0 or len(args[0].user.team.all() & accessible_queryset) > 0:
+            accessible_team_id = list(obj.team.all().values_list("id", flat=True))
+            if len(accessible_team_id) == 0:
                 return func(*args, **kwargs)
             else:
-                return redirect('/error_not_accessible')
+                for team_id in accessible_team_id:
+                    if team_id in json.loads(args[0].user.team.related_parent):
+                        return func(*args, **kwargs)
+            return redirect('/error_not_accessible')
         return args_wrapper
     return func_wrapper
 
