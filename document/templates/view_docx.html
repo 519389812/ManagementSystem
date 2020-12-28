@@ -123,7 +123,7 @@
                 <div class="card-body">
                     <div id="qrcode"></div><hr>
                     <!-- Target -->
-                    <textarea id="share_text" style="width:100%">http://{{ request.get_host }}{{ request.get_full_path }}</textarea><br>
+                    <textarea id="share_text" style="width:100%">https://{{ request.get_host }}{{ request.get_full_path }}</textarea><br>
                     <div id="show_copy_result" style="display: none;">已复制</div><br>
                     <button class="btn btn-primary" id="copy_share_text" data-clipboard-target="#share_text">复制</button>
                     <!-- Trigger -->

@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'user',
     'group',
     'quickcheck',
+    'team',
 ]
 
 MIDDLEWARE = [

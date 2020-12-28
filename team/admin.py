@@ -15,10 +15,12 @@ class TeamAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        else:
-            return qs.filter(related_parent=request.user.team.related_parent)
+        if not request.user.is_superuser:
+            try:
+                qs = qs.filter(related_parent__regex=r'\D%s\D' % str(request.user.team.id))
+            except:
+                pass
+        return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
     #     kwargs["queryset"] = Team.objects.exclude()

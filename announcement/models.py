@@ -8,11 +8,10 @@ image_path = "images"
 
 class Announcement(models.Model):
     id = models.AutoField(primary_key=True)
-    author = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="作者")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="作者")
     title = models.TextField(max_length=100, verbose_name="标题")
     content = models.TextField(max_length=800, verbose_name="内容")
-    team = models.ManyToManyField(Team, related_name="team", blank=True, verbose_name="接收组")
-    user = models.ManyToManyField(User, related_name="user", blank=True, verbose_name="接收人")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
     require_upload = models.BooleanField(default=False, verbose_name="需要上传")
     issue_datetime = models.DateTimeField(auto_now_add=True, verbose_name="发布时间")
     edit_datetime = models.DateTimeField(auto_now=True, verbose_name="最新修改时间")
@@ -28,8 +27,8 @@ class Announcement(models.Model):
 
 class AnnouncementRecord(models.Model):
     id = models.AutoField(primary_key=True)
-    announcement = models.ForeignKey(Announcement, on_delete=models.DO_NOTHING, verbose_name="通知id")
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="阅读人")
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE, verbose_name="通知")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="阅读人")
     image = models.ImageField(upload_to=image_path, blank=True, verbose_name="图片")
     read_datetime = models.DateTimeField(auto_now=True, verbose_name="确认时间")
 
@@ -43,11 +42,11 @@ class AnnouncementRecord(models.Model):
 
 class Feedback(models.Model):
     id = models.AutoField(primary_key=True)
-    announcement = models.ForeignKey(Announcement, on_delete=models.DO_NOTHING, verbose_name="通知id")
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="发送人")
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE, verbose_name="通知")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="发送人")
     sent_datetime = models.DateTimeField(auto_now=True, verbose_name="发送时间")
     comment = models.TextField(max_length=100, verbose_name="内容")
-    to_record = models.ForeignKey(AnnouncementRecord, on_delete=models.DO_NOTHING, verbose_name="回复id")
+    to_record = models.ForeignKey(AnnouncementRecord, on_delete=models.CASCADE, verbose_name="回复")
 
     class Meta:
         verbose_name = "留言"
