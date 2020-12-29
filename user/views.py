@@ -99,7 +99,7 @@ def login(request, error=""):
             user_agent = parse(request.META.get('HTTP_USER_AGENT'))
             if user_agent.is_touch_capable is True:
                 if User.objects.filter(ip_address=ip).exclude(username=username).count() > 0:
-                    return redirect(reverse("login", args=["您是否使用了他人设备登录？若是，请使用自己设备登录；如果系统判断失误，请联系管理员！"]))
+                    return redirect(reverse("login", args=["当前IP(%s)地址与他人IP地址相同，您是否使用了他人设备登录？若是，请使用自己设备登录；如果系统判断失误，请联系管理员！" % ip]))
                 user.ip_address = ip
                 user.save()
             login_admin(request, user)
