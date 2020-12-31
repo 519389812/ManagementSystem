@@ -2,6 +2,7 @@ from django.contrib import admin
 from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, AddWorkload, ReferenceType, Reference, AddReward
 from team.models import Team
 from django.contrib.admin import widgets
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 
 
 def return_get_queryset(request, qs):
@@ -253,6 +254,9 @@ class ReferenceAdmin(admin.ModelAdmin):
 class AddRewardAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'reward', 'get_reference', 'title', 'level')
     filter_horizontal = ('reference',)
+    list_filter = (
+        ('date', DateRangeFilter),
+    )
 
     def get_reference(self, obj):
         return ' '.join([i.name for i in obj.reference.all()])
@@ -276,6 +280,10 @@ class AddRewardAdmin(admin.ModelAdmin):
 
 class AddWorkloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team')
+
+    list_filter = (
+        ('start_datetime', DateTimeRangeFilter),
+    )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
