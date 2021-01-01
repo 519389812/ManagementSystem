@@ -3,6 +3,8 @@ from performance.models import Level, Rule, PositionType, Position, SkillType, S
 from team.models import Team
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from django.db.models import Count, Sum, DateTimeField, DateField, Min, Max
+from django.db.models.functions import Trunc
 
 
 def return_get_queryset(request, qs):
@@ -253,10 +255,12 @@ class ReferenceAdmin(admin.ModelAdmin):
 
 class AddRewardAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'reward', 'get_reference', 'title', 'level')
+    list_display_links = ('reward',)
     filter_horizontal = ('reference',)
     list_filter = (
         ('date', DateRangeFilter),
     )
+    change_list_template = 'admin/reward_summary_change_list.html'
 
     def get_reference(self, obj):
         return ' '.join([i.name for i in obj.reference.all()])
@@ -276,6 +280,17 @@ class AddRewardAdmin(admin.ModelAdmin):
             except:
                 pass
         return super(AddRewardAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context
+        )
+        try:
+            qs = response.context_data['cl'].queryset
+        except (AttributeError, KeyError):
+            return response
+        return response
 
 
 class AddWorkloadAdmin(admin.ModelAdmin):

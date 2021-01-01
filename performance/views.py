@@ -2,8 +2,32 @@ from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
 from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, AddWorkload, ReferenceType, Reference, AddReward
+from performance.admin import AddRewardAdmin
 from team.models import Team
 from user.views import check_authority
+
+from jinja2 import Environment, FileSystemLoader
+from pyecharts.globals import CurrentConfig
+
+CurrentConfig.GLOBAL_ENV = Environment(loader=FileSystemLoader("{}/templates/pyecharts".format(settings.BASE_DIR)))
+
+from django.http import HttpResponse
+from pyecharts import options as opts
+from pyecharts.charts import Bar
+from pyecharts.globals import ThemeType
+
+
+def plot_bar(request):
+    c = (
+        # 设置主题的样式
+        Bar(init_opts=opts.InitOpts())
+            .add_xaxis(["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"])
+            .add_yaxis("商家A", [5, 20, 36, 10, 75, 90])
+            .add_yaxis("商家B", [15, 25, 16, 55, 48, 8])
+            # 增加主题和副标题
+            .set_global_opts(title_opts=opts.TitleOpts(title="Bar-基本示例", subtitle="我是副标题"))
+    )
+    return HttpResponse(c.render_embed())
 
 
 @check_authority

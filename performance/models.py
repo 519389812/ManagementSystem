@@ -185,7 +185,7 @@ class Reference(models.Model):
 class AddReward(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, related_name='reward_user', on_delete=models.CASCADE, verbose_name="责任人")
-    date = models.DateTimeField(verbose_name="日期")
+    date = models.DateField(verbose_name="日期")
     reward = models.ForeignKey(Reward, on_delete=models.CASCADE, verbose_name="奖惩")
     reference = models.ManyToManyField(Reference, verbose_name="涉及内容")
     title = models.CharField(max_length=500, verbose_name="标题")

@@ -89,5 +89,6 @@ urlpatterns = [
 
     # performance
     # path('performance/', performance_views.performance, name="performance"),
+    # path('performance/charts', performance_views.plot_bar, name="index"),
     # path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
 ]
