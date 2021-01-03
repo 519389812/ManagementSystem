@@ -1,5 +1,5 @@
 from django.contrib import admin
-from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, AddWorkload, ReferenceType, Reference, AddReward
+from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, WorkloadRecord, ReferenceType, Reference, RewardRecord
 from team.models import Team
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
@@ -253,12 +253,12 @@ class ReferenceAdmin(admin.ModelAdmin):
         return super(ReferenceAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class AddRewardAdmin(admin.ModelAdmin):
+class RewardRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'reward', 'get_reference', 'title', 'level')
     list_display_links = ('reward',)
     filter_horizontal = ('reference',)
     list_filter = (
-        ('date', DateRangeFilter),
+        ('date', DateRangeFilter), 'user__team'
     )
     change_list_template = 'admin/reward_summary_change_list.html'
 
@@ -279,7 +279,7 @@ class AddRewardAdmin(admin.ModelAdmin):
                     kwargs["queryset"] = Reference.objects.filter(team__related_parent__iregex=r'\D%s\D' % str(team_id))
             except:
                 pass
-        return super(AddRewardAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+        return super(RewardRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(
@@ -293,7 +293,7 @@ class AddRewardAdmin(admin.ModelAdmin):
         return response
 
 
-class AddWorkloadAdmin(admin.ModelAdmin):
+class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team')
 
     list_filter = (
@@ -320,5 +320,5 @@ admin.site.register(ShiftType, ShiftTypeAdmin)
 admin.site.register(Shift, ShiftAdmin)
 admin.site.register(ReferenceType, ReferenceTypeAdmin)
 admin.site.register(Reference, ReferenceAdmin)
-admin.site.register(AddReward, AddRewardAdmin)
-admin.site.register(AddWorkload, AddWorkloadAdmin)
+admin.site.register(RewardRecord, RewardRecordAdmin)
+admin.site.register(WorkloadRecord, WorkloadRecordAdmin)

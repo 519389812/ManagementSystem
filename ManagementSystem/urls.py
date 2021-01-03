@@ -19,7 +19,7 @@ from . import views as main_views
 from document import views as document_views
 from user import views as user_views
 from quickcheck import views as quickcheck_views
-# from performance import views as performance_views
+from performance import views as performance_views
 from django.shortcuts import render
 from ManagementSystem.views import error_404, error_400, error_403, error_500
 
@@ -88,7 +88,7 @@ urlpatterns = [
     path('quickcheck/outbound_limit/thailand', quickcheck_views.outbound_limit_thailand, name="outbound_limit_thailand"),
 
     # performance
-    # path('performance/', performance_views.performance, name="performance"),
-    # path('performance/charts', performance_views.plot_bar, name="index"),
-    # path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
+    path('performance/', performance_views.performance, name="performance"),
+    path('performance/chart', performance_views.plot_bar, name="chart"),
+    path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
 ]

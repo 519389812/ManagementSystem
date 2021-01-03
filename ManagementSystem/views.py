@@ -6,6 +6,7 @@ import base64
 from urllib import parse
 from django.shortcuts import render
 from django.http import *
+
 # 当前路径钥匙地址
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 private_key_file = os.path.join(curr_dir, "my_private_rsa_key.bin")  # 密钥
@@ -73,3 +74,10 @@ def custom_decode(fun):
                 request.POST[i] = decrypt_data(request.POST[i])
         return fun(request, *args, **kwargs)
     return check
+
+
+# 解析url中的参数
+def parse_url_param(url):
+    url_content = parse.urlparse(url)
+    query_dict = parse.parse_qs(url_content.query)
+    return query_dict

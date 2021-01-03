@@ -1,10 +1,13 @@
 from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
-from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, AddWorkload, ReferenceType, Reference, AddReward
-from performance.admin import AddRewardAdmin
+from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, WorkloadRecord, ReferenceType, Reference, RewardRecord
 from team.models import Team
 from user.views import check_authority
+from ManagementSystem.views import parse_url_param
+from django.utils import timezone
+import pandas as pd
+import numpy as np
 
 from jinja2 import Environment, FileSystemLoader
 from pyecharts.globals import CurrentConfig
@@ -18,10 +21,34 @@ from pyecharts.globals import ThemeType
 
 
 def plot_bar(request):
+    url = request.META["HTTP_REFERER"]
+    url_params = parse_url_param(url)
+    if len(url_params) > 0:
+        filter_str = ''
+        for key, value in url_params.items():
+            if "date" in key:
+                filter_str += key.replace("__range", "") + '="' + value[0].replace("/", "-") + '", '
+            elif "id" in key:
+                filter_str += key + '=' + value[0] + ', '
+            else:
+                filter_str += key + '="' + value[0] + '", '
+        command_str = 'RewardRecord.objects.filter(%s)' % filter_str
+        queryset = eval(command_str)
+    else:
+        queryset = RewardRecord.objects.all()
+    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
+    data['name'] = data['user__last_name'] + data['user__first_name']
+    data = data[['name', 'reward__name']]
+    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
+    data['次数'] = data['姓名']
+    data = pd.pivot_table(data, values=["次数"], index=["姓名", "奖惩名称"], aggfunc=np.count_nonzero)
+    print(data)
+    print(data.columns)
+    print(data.index)
     c = (
         # 设置主题的样式
         Bar(init_opts=opts.InitOpts())
-            .add_xaxis(["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"])
+            .add_xaxis(data.index)
             .add_yaxis("商家A", [5, 20, 36, 10, 75, 90])
             .add_yaxis("商家B", [15, 25, 16, 55, 48, 8])
             # 增加主题和副标题
@@ -110,3 +137,5 @@ def addinfos_date(request, year, month):
     context = get_addinfo_list_data(request, addinfos_all_list)
     context['addinfos_date'] = '%s年%s月' % (year, month)
     return render(request, 'addinfos_date.html', context)
+
+

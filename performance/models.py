@@ -182,13 +182,13 @@ class Reference(models.Model):
         return self.name
 
 
-class AddReward(models.Model):
+class RewardRecord(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, related_name='reward_user', on_delete=models.CASCADE, verbose_name="责任人")
     date = models.DateField(verbose_name="日期")
     reward = models.ForeignKey(Reward, on_delete=models.CASCADE, verbose_name="奖惩")
-    reference = models.ManyToManyField(Reference, verbose_name="涉及内容")
-    title = models.CharField(max_length=500, verbose_name="标题")
+    reference = models.ManyToManyField(Reference, blank=True, verbose_name="涉及内容")
+    title = models.CharField(max_length=500, verbose_name="简述")
     level = models.ForeignKey(Level, on_delete=models.CASCADE, verbose_name="影响程度")
     content = models.TextField(max_length=1000, blank=True, verbose_name="详细情况")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
@@ -202,7 +202,7 @@ class AddReward(models.Model):
         return str(self.id)
 
 
-class AddWorkload(models.Model):
+class WorkloadRecord(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, related_name='workload_user', on_delete=models.CASCADE, verbose_name="登记人")
     shift = models.ForeignKey(Shift, on_delete=models.CASCADE, verbose_name="班次")
