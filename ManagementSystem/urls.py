@@ -89,6 +89,8 @@ urlpatterns = [
 
     # performance
     path('performance/', performance_views.performance, name="performance"),
-    path('performance/chart', performance_views.plot_bar, name="chart"),
+    path('performance/reward_bar_summary', performance_views.reward_bar_summary, name="reward_bar_summary"),
+    path('performance/reward_bar_by_name', performance_views.reward_bar_by_name, name="reward_bar_by_name"),
+    path('performance/reward_line', performance_views.reward_line, name="reward_line"),
     path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
 ]

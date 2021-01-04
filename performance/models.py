@@ -94,8 +94,15 @@ class Skill(models.Model):
         return self.name
 
 
+reward_type_choice = (
+    ("正向", "正向"),
+    ("负向", "负向"),
+)
+
+
 class RewardType(models.Model):
     id = models.AutoField(primary_key=True)
+    type = models.CharField(max_length=10, choices=reward_type_choice, verbose_name="性质")
     name = models.CharField(max_length=100, unique=True, verbose_name="奖惩类别")
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
 
@@ -187,9 +194,9 @@ class RewardRecord(models.Model):
     user = models.ForeignKey(User, related_name='reward_user', on_delete=models.CASCADE, verbose_name="责任人")
     date = models.DateField(verbose_name="日期")
     reward = models.ForeignKey(Reward, on_delete=models.CASCADE, verbose_name="奖惩")
-    reference = models.ManyToManyField(Reference, blank=True, verbose_name="涉及内容")
+    reference = models.ManyToManyField(Reference, blank=True, verbose_name="影响")
     title = models.CharField(max_length=500, verbose_name="简述")
-    level = models.ForeignKey(Level, on_delete=models.CASCADE, verbose_name="影响程度")
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, verbose_name="程度")
     content = models.TextField(max_length=1000, blank=True, verbose_name="详细情况")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     created_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="登记人")

@@ -264,7 +264,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
 
     def get_reference(self, obj):
         return ' '.join([i.name for i in obj.reference.all()])
-    get_reference.short_description = "规则"
+    get_reference.short_description = "影响"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -281,16 +281,19 @@ class RewardRecordAdmin(admin.ModelAdmin):
                 pass
         return super(RewardRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
-    def changelist_view(self, request, extra_context=None):
-        response = super().changelist_view(
-            request,
-            extra_context=extra_context
-        )
-        try:
-            qs = response.context_data['cl'].queryset
-        except (AttributeError, KeyError):
-            return response
-        return response
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return ["created_user", ]
+        else:
+            return []
+
+    def save_model(self, request, obj, form, change):
+        if form.is_valid():
+            if not request.user.is_superuser:
+                obj.created_user = request.user
+                super().save_model(request, obj, form, change)
+            else:
+                super().save_model(request, obj, form, change)
 
 
 class WorkloadRecordAdmin(admin.ModelAdmin):

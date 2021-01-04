@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -8,53 +9,132 @@ from ManagementSystem.views import parse_url_param
 from django.utils import timezone
 import pandas as pd
 import numpy as np
+import datetime
+from django.contrib import messages
 
 from jinja2 import Environment, FileSystemLoader
 from pyecharts.globals import CurrentConfig
 
 CurrentConfig.GLOBAL_ENV = Environment(loader=FileSystemLoader("{}/templates/pyecharts".format(settings.BASE_DIR)))
 
-from django.http import HttpResponse
 from pyecharts import options as opts
-from pyecharts.charts import Bar
+from pyecharts.charts import Bar, Line
 from pyecharts.globals import ThemeType
 
 
-def plot_bar(request):
-    url = request.META["HTTP_REFERER"]
-    url_params = parse_url_param(url)
+def make_date_list(start_date, end_date):
+    date_list = []
+    day_delta = (end_date - start_date).days + 1
+    for days in range(day_delta):
+        the_date = (start_date + datetime.timedelta(days=days)).strftime('%Y-%m-%d')
+        date_list.append(the_date)
+    return date_list
+
+
+def get_queryset(url_params, object_):
     if len(url_params) > 0:
         filter_str = ''
         for key, value in url_params.items():
             if "date" in key:
+                print(key)
                 filter_str += key.replace("__range", "") + '="' + value[0].replace("/", "-") + '", '
             elif "id" in key:
                 filter_str += key + '=' + value[0] + ', '
             else:
                 filter_str += key + '="' + value[0] + '", '
-        command_str = 'RewardRecord.objects.filter(%s)' % filter_str
+        command_str = '%s.objects.filter(%s)' % (object_, filter_str)
         queryset = eval(command_str)
     else:
-        queryset = RewardRecord.objects.all()
+        queryset = eval('%s.objects.all()' % object_)
+    return queryset
+
+
+@check_authority
+def reward_bar_summary(request):
+    url = request.META.get("HTTP_REFERER", "")
+    if url == "":
+        return render(request, "error_400.html", status=400)
+    url_params = parse_url_param(url)
+    queryset = get_queryset(url_params, 'RewardRecord')
+    if queryset.count() == 0:
+        messages.error(request, "筛选数据为空")
+        return redirect(url)
+    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
+    data['name'] = data['user__last_name'] + data['user__first_name']
+    data = data[['name', 'reward__name']]
+    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
+    data['次数'] = data['姓名']
+    data = pd.pivot_table(data, values=["次数"], index=["奖惩名称"], aggfunc=np.count_nonzero)
+    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="总体"))
+    bar.add_xaxis(data.index.values.tolist())
+    bar.add_yaxis("奖惩类型", data["次数"].values.tolist())
+    c = (
+        bar
+         )
+    return HttpResponse(c.render_embed())
+
+
+@check_authority
+def reward_bar_by_name(request):
+    url = request.META.get("HTTP_REFERER", "")
+    if url == "":
+        return render(request, "error_400.html", status=400)
+    url_params = parse_url_param(url)
+    queryset = get_queryset(url_params, 'RewardRecord')
+    if queryset.count() == 0:
+        messages.error(request, "筛选数据为空")
+        return redirect(url)
     data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
     data['name'] = data['user__last_name'] + data['user__first_name']
     data = data[['name', 'reward__name']]
     data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
     data['次数'] = data['姓名']
     data = pd.pivot_table(data, values=["次数"], index=["姓名", "奖惩名称"], aggfunc=np.count_nonzero)
-    print(data)
-    print(data.columns)
-    print(data.index)
-    c = (
-        # 设置主题的样式
-        Bar(init_opts=opts.InitOpts())
-            .add_xaxis(data.index)
-            .add_yaxis("商家A", [5, 20, 36, 10, 75, 90])
-            .add_yaxis("商家B", [15, 25, 16, 55, 48, 8])
-            # 增加主题和副标题
-            .set_global_opts(title_opts=opts.TitleOpts(title="Bar-基本示例", subtitle="我是副标题"))
+    first_list, second_list = zip(*data.index.values)
+    first_list, second_list = set(first_list), set(second_list)
+    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="按姓名"))
+    bar.add_xaxis(second_list)
+    for value in first_list:
+        bar.add_yaxis(value, data.loc[value]["次数"].values.tolist())
+    b = (
+        bar
+         )
+    return HttpResponse(b.render_embed())
+
+
+@check_authority
+def reward_line(request):
+    url = request.META.get("HTTP_REFERER", "")
+    if url == "":
+        return render(request, "error_400.html", status=400)
+    url_params = parse_url_param(url)
+    queryset = get_queryset(url_params, 'RewardRecord')
+    if queryset.count() == 0:
+        messages.error(request, "筛选数据为空")
+        return redirect(url)
+    date_range = list(queryset.values_list("date", flat=True).order_by('date'))
+    start_date, end_date = date_range[0], date_range[-1]
+    date_list = make_date_list(start_date, end_date)
+    data = pd.DataFrame(date_list, columns=["日期"])
+    data_db = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name", "date"))
+    data_db['name'] = data_db['user__last_name'] + data_db['user__first_name']
+    data_db = data_db[['name', 'reward__name', 'date']]
+    data_db = data_db.rename(columns={"name": '姓名', "reward__name": '奖惩名称', "date": "日期"})
+    data_db["日期"] = data_db["日期"].apply(lambda x: x.strftime('%Y-%m-%d'))
+    data = pd.merge(data, data_db, on="日期", how="outer")
+    data["次数"] = data["奖惩名称"]
+    data = pd.pivot_table(data, values=["次数"], index=["日期"], columns=["奖惩名称"], aggfunc=np.count_nonzero)
+    data = data.fillna(0)
+    _, second_list = zip(*data.columns.tolist())
+    second_list = set(second_list)
+    line = Line(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩趋势", subtitle="总体"))
+    line.add_xaxis(data.index.values.tolist())
+    for value in second_list:
+        line.add_yaxis(value, data["次数"][value], symbol_size=10, is_smooth=True)
+    l = (
+        line
     )
-    return HttpResponse(c.render_embed())
+    return HttpResponse(l.render_embed())
 
 
 @check_authority

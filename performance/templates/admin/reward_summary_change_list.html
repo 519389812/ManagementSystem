@@ -3,5 +3,7 @@
 
 {% block content %}
 {{ block.super }}
-<a class="btn btn-xs btn-danger" href="{% url 'chart' %}"><input name="summary" type="button" id="summary" value="查看统计"></a>
+<a class="btn btn-xs btn-danger" href="{% url 'reward_bar_summary' %}"><input name="reward_bar_summary" type="button" id="reward_bar_summary" value="次数统计(总体)"></a>
+<a class="btn btn-xs btn-danger" href="{% url 'reward_bar_by_name' %}"><input name="reward_bar_by_name" type="button" id="reward_bar_by_name" value="次数统计(按姓名)"></a>
+<a class="btn btn-xs btn-danger" href="{% url 'reward_line' %}"><input name="summary" type="button" id="reward_line" value="整体趋势"></a>
 {% endblock %}
