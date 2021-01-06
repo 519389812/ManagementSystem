@@ -126,15 +126,15 @@ $(document).ready(function(){
     });
 
     $(function(){
-        $("#submit-button").click(function(event){
+        $("#submit").click(function(event){
             var username = $('#username').val();
             var password = $('#password').val();
             var lastname = $('#lastname').val();
             var firstname = $('#firstname').val();
-            var username_validate = $('#username-validate').text();
-            var password_validate = $('#password-validate').text();
-            var lastname_validate = $('#lastname-validate').text();
-            var firstname_validate = $('#firstname-validate').text();
+            var username_validate = $('#username_validate').text();
+            var password_validate = $('#password_validate').text();
+            var lastname_validate = $('#lastname_validate').text();
+            var firstname_validate = $('#firstname_validate').text();
             if(username == "" || password == "" || lastname == "" || firstname == ""){
                 event.preventDefault();
                 alert("输入不能为空！")

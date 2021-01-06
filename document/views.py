@@ -11,6 +11,7 @@ import math
 from urllib import parse
 from django.utils import timezone
 from ManagementSystem.settings import TIME_ZONE
+from ManagementSystem.views import check_datetime_opened, check_datetime_closed
 from user.views import check_authority, check_is_touch_capable, check_accessible
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.views.decorators.csrf import csrf_exempt
@@ -85,14 +86,6 @@ def delete_translate_words(request):
             return render(request, "error_400.html", status=400)
     else:
         return render(request, "error_400.html", status=400)
-
-
-def check_docx_closed(close_timezone, now_timezone):
-    return True if close_timezone <= now_timezone else False
-
-
-def check_docx_opened(close_timezone, now_timezone):
-    return True if close_timezone > now_timezone else False
 
 
 @check_authority
@@ -189,7 +182,7 @@ def view_docx(request, docx_id, info=""):
         if len(docx_object) == 0:
             return render(request, "error_403.html", status=403)
         docx_dict = docx_object.values("id", "user__last_name", "user__first_name", "template_name", "docx_name", "content", "version", "create_datetime", "edit_datetime", "close_datetime")[0]
-        closed = check_docx_closed(timezone.localtime(docx_dict["close_datetime"]), timezone.localtime(timezone.now()))
+        closed = check_datetime_closed(timezone.localtime(docx_dict["close_datetime"]), timezone.localtime(timezone.now()))
         document_handler, document_template_handler = create_docx_handler(templates_dir + docx_dict["template_name"] + ".docx", "")
         content_variable_dict = get_variable_list(document_handler, '_', -1, r'[a-z0-9]+_n[a-z]_\d+')
         supervisor_variable_dict = get_variable_list(document_handler, '_', -1, r'[a-z0-9]+_s[a-z]_')
@@ -285,7 +278,7 @@ def fill_docx(request, docx_id, need_signature):
             docx_object = DocxInit.objects.get(id=docx_id)
         except:
             return render(request, "error_docx_missing.html", status=403)
-        if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
+        if check_datetime_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_closed.html", status=403)
         params = request.POST.dict()
         del(params["csrfmiddlewaretoken"])
@@ -313,7 +306,7 @@ def fill_signature(request):
             docx_object = DocxInit.objects.get(id=docx_id)
         except:
             return render(request, "error_docx_missing.html", status=403)
-        if check_docx_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
+        if check_datetime_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_closed.html", status=403)
         signature_data = parse.unquote(decrypt(request_data["data"], request_data["key"]))
         # signature_data = parse.unquote(request_data["data"])
@@ -335,7 +328,7 @@ def supervise_docx(request):
             docx_object = DocxInit.objects.get(id=docx_id)
         except:
             return render(request, "error_docx_missing.html", status=403)
-        if check_docx_opened(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
+        if check_datetime_opened(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_opened.html", status=403)
         return render(request, "signature.html", {"docx_id": docx_id, "content_id": "", "signature_key": signature_key})
     else:

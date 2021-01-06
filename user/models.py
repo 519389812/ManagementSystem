@@ -16,3 +16,20 @@ class User(AbstractUser):
     #
     # def save(self, *args, **kwargs):
     #     super(User, self).save(*args, **kwargs)
+
+
+class EmailVerifyRecord(models.Model):
+    send_choices = (
+        ('register', '注册'),
+        ('reset', '重设'),
+    )
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    email = models.EmailField(verbose_name="邮箱")
+    code = models.CharField(max_length=20, verbose_name='验证码')
+    type = models.CharField(choices=send_choices, max_length=10, verbose_name='验证码类型')
+    close_datetime = models.DateTimeField(verbose_name='过期时间')
+
+    class Meta:
+        verbose_name = '邮箱验证'
+        verbose_name_plural = '邮箱验证'

@@ -81,3 +81,11 @@ def parse_url_param(url):
     url_content = parse.urlparse(url)
     query_dict = parse.parse_qs(url_content.query)
     return query_dict
+
+
+def check_datetime_closed(close_timezone, now_timezone):
+    return True if close_timezone <= now_timezone else False
+
+
+def check_datetime_opened(close_timezone, now_timezone):
+    return True if close_timezone > now_timezone else False

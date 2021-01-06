@@ -154,3 +154,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"  # Default
+
+EMAIL_HOST = "smtp.qq.com"
+EMAIL_PORT = 25
+EMAIL_HOST_USER = "904874417@qq.com"   # 邮箱
+EMAIL_HOST_PASSWORD = "vtfkyizuxeysbeif"   # 邮箱授权码
+EMAIL_USE_TLS = True
+EMAIL_FROM = "904874417@qq.com"  # 邮箱
