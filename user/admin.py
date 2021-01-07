@@ -17,8 +17,8 @@ class CustomUserAdmin(UserAdmin):
     filter_horizontal = ('groups', 'user_permissions', )
 
 
-class EmailVerifyRecordAdmin(UserAdmin):
-    pass
+class EmailVerifyRecordAdmin(admin.ModelAdmin):
+    list_display = ('user', 'email', 'code', 'type', 'close_datetime')
 
 
 admin.site.register(User, CustomUserAdmin)

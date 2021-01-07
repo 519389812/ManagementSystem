@@ -20,7 +20,7 @@ class User(AbstractUser):
 
 class EmailVerifyRecord(models.Model):
     send_choices = (
-        ('register', '注册'),
+        ('register', '验证'),
         ('reset', '重设'),
     )
     id = models.AutoField(primary_key=True)
@@ -33,3 +33,6 @@ class EmailVerifyRecord(models.Model):
     class Meta:
         verbose_name = '邮箱验证'
         verbose_name_plural = '邮箱验证'
+
+    def __str__(self):
+        return self.email

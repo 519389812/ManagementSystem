@@ -7,6 +7,7 @@ from django.contrib.auth import login as login_admin
 from django.contrib.auth import logout as logout_admin
 from django.contrib.auth import authenticate
 from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from django.utils.datastructures import MultiValueDictKeyError
 import re
 from django.utils import timezone
@@ -69,6 +70,11 @@ def check_accessible(model_object):
 
 def home(request):
     return render(request, "home.html")
+
+
+@check_authority
+def user_setting(request):
+    return render(request, "user_setting.html")
 
 
 def register(request, error=''):
@@ -157,7 +163,7 @@ def send_register_verify_email(request):
         code = random_str(16)
         EmailVerifyRecord.objects.create(user=request.user, email=email_address, code=code, type="register", close_datetime=timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5))
         email_title = "管理系统 - 邮箱激活链接"
-        email_body = "请点击下面的链接激活你的账号，有效期为5分钟: https://%sverify_register_email/%s" % (request.get_host(), code)
+        email_body = "请点击下面的链接激活你的账号，有效期为5分钟: https://%s/verify_register_email/%s" % (request.get_host(), code)
         send_status = send_mail(email_title, email_body, EMAIL_FROM, [email_address])
         if send_status:
             return render(request, "register_verify_email.html", {"msg": "邮件已发送，请登录邮箱查收"})
@@ -173,10 +179,10 @@ def verify_register_email(request, code):
     if len(records) > 0:
         for record in records:
             if check_datetime_opened(timezone.localtime(record.close_datetime), timezone.localtime(timezone.now())):
-                user = User.objects.get(user=record.user)
+                user = User.objects.get(id=record.user.id)
                 user.email = record.email
                 user.save()
-                return render(request, 'register_verify_email.html', {"msg": "验证成功"})
+                return render(request, 'user_setting.html', {"msg": "邮箱验证成功"})
         return render(request, 'register_verify_email.html', {"msg": "验证码已过期"})
     else:
         return render(request, 'register_verify_email.html', {"msg": "验证失败，验证码错误"})
@@ -188,7 +194,7 @@ def reset_password_email(request):
 
 def send_reset_password_email(request):
     if request.method == "POST":
-        if not check_post_valudate(request, check_username_validate, check_email_validate):
+        if not check_post_valudate(request, check_email_validate):
             return render(request, "reset_password_email.html", {"msg": "存在未按格式输入的字段!"})
         username = request.POST.get("username", "")
         try:
@@ -201,7 +207,7 @@ def send_reset_password_email(request):
         code = random_str(16)
         EmailVerifyRecord.objects.create(user=user, code=code, type="reset", close_datetime=timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5))
         email_title = "管理系统 - 找回密码"
-        email_body = "请点击下面的链接找回你的密码，有效期为5分钟: https://%sreset_password/%s" % (request.get_host(), code)
+        email_body = "请点击下面的链接找回你的密码，有效期为5分钟: https://%s/reset_password/%s" % (request.get_host(), code)
         send_status = send_mail(email_title, email_body, EMAIL_FROM, [email_address])
         if send_status:
             return render(request, "reset_password_email.html", {"msg": "邮件已发送，请登录邮箱查收"})
@@ -221,19 +227,44 @@ def reset_password(request, code):
                     record.save()
                     return render(request, 'reset_password.html', {"msg": "验证成功，请于5分钟内重设密码", "code": code})
                 else:
+                    if not check_post_valudate(request, check_passwords_validate):
+                        return render(request, "reset_password_email.html", {"msg": "存在未按格式输入的字段!"})
                     password = request.POST.get("password", "")
                     password_repeat = request.POST.get("password_repeat", "")
                     if password == "" or password_repeat == "":
                         return render(request, 'reset_password.html', {"msg": "密码为空", "code": code})
                     if password != password_repeat:
                         return render(request, 'reset_password.html', {"msg": "两次输入的密码不一致", "code": code})
-                    user = User.objects.get(user=record.user)
+                    user = User.objects.get(id=record.user.id)
                     user.password = make_password(password)
                     user.save()
-                    return render(request, 'reset_password_email.html', {"msg": "密码修改成功", "code": code})
+                    return render(request, 'login.html', {"msg": "密码修改成功"})
         return render(request, 'reset_password_email.html', {"msg": "验证码已过期"})
     else:
         return render(request, 'reset_password_email.html', {"msg": "重设密码失败，验证码错误"})
+
+
+@check_authority
+def change_password(request):
+    if request.method == "GET":
+        return render(request, 'change_password.html')
+    else:
+        if not check_post_valudate(request, check_passwords_validate):
+            return render(request, "change_password.html", {"msg": "存在未按格式输入的字段!"})
+        old_password = request.POST.get("old_password", "")
+        if check_password(old_password, request.user.password):
+            password = request.POST.get("password", "")
+            password_repeat = request.POST.get("password_repeat", "")
+            if password == "" or password_repeat == "":
+                return render(request, 'change_password.html', {"msg": "密码为空"})
+            if password != password_repeat:
+                return render(request, 'change_password.html', {"msg": "两次输入的密码不一致"})
+            user = User.objects.get(id=request.user.id)
+            user.password = make_password(password)
+            user.save()
+            return render(request, 'login.html', {"msg": "密码修改成功，请重新登录"})
+        else:
+            return render(request, "change_password.html", {"msg": "旧密码不正确!"})
 
 
 def logout(request):
@@ -271,6 +302,50 @@ def check_password_validate(request):
     return HttpResponse('')
 
 
+def check_old_password_validate(request):
+    try:
+        password = request.GET["old_password"]
+    except MultiValueDictKeyError:
+        password = request.POST.get("old_password")
+    if password == "":
+        return HttpResponse('密码不能为空')
+    if len(password) < 6 or len(password) > 16:
+        return HttpResponse('密码不能少于6个字符或超过16个字符')
+    if not re.search(r'^\S+$', password):
+        return HttpResponse("密码包含非法字符(‘ ’)")
+    return HttpResponse('')
+
+
+def check_password_repeat_validate(request):
+    try:
+        password = request.GET["password_repeat"]
+    except MultiValueDictKeyError:
+        password = request.POST.get("password_repeat")
+    if password == "":
+        return HttpResponse('密码不能为空')
+    if len(password) < 6 or len(password) > 16:
+        return HttpResponse('密码不能少于6个字符或超过16个字符')
+    if not re.search(r'^\S+$', password):
+        return HttpResponse("密码包含非法字符(‘ ’)")
+    return HttpResponse('')
+
+
+def check_passwords_validate(request):
+    try:
+        params = request.GET.dict()
+    except MultiValueDictKeyError:
+        params = request.POST.dict()
+    for key, value in params.items():
+        if "password" in key:
+            if key == "":
+                return HttpResponse('密码不能为空')
+            if len(key) < 6 or len(key) > 16:
+                return HttpResponse('密码不能少于6个字符或超过16个字符')
+            if not re.search(r'^\S+$', key):
+                return HttpResponse("密码包含非法字符(‘ ’)")
+    return HttpResponse('')
+
+
 def check_lastname_validate(request):
     try:
         lastname = request.GET["lastname"]
@@ -304,7 +379,9 @@ def check_email_validate(request):
         email_address = request.GET["email_address"]
     except MultiValueDictKeyError:
         email_address = request.POST.get("email_address")
-    if not validate_email(email_address):
+    try:
+        validate_email(email_address)
+    except ValidationError:
         return HttpResponse("请输入正确的邮箱格式")
     return HttpResponse('')
 
@@ -312,6 +389,7 @@ def check_email_validate(request):
 def check_post_valudate(request, *args):
     check_method = args
     for method in check_method:
+        print(method)
         if method(request).content != b'':
             return False
     return True

@@ -36,7 +36,7 @@
                     <div class="controls">
                         <label>用户名:</label>
                         <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名"
-                               required data-validation-required-message="Please enter your name.">
+                               required data-validation-required-message="Please enter your username.">
                         <p class="help-block" id="username_validate"></p>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
                     <div class="controls">
                         <label>密码:</label>
                         <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码"
-                               required data-validation-required-message="Please enter your phone number.">
+                               required data-validation-required-message="Please enter your password.">
                         <p class="help-block" id="password_validate"></p>
                     </div>
                 </div>
@@ -93,8 +93,6 @@
 
 <!-- Bootstrap core JavaScript -->
 {% include "script.html" %}
-<script src="js/jqBootstrapValidation.js"></script>
-<script src="js/contact_me.js"></script>
 <script>
 $(document).ready(function(){
     $('#username').blur(function(){
