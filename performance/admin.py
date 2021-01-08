@@ -299,9 +299,9 @@ class RewardRecordAdmin(admin.ModelAdmin):
 class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team')
 
-    list_filter = (
-        ('start_datetime', DateTimeRangeFilter),
-    )
+    # list_filter = (
+    #     ('start_datetime', DateTimeRangeFilter),
+    # )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
