@@ -104,4 +104,5 @@ urlpatterns = [
     path('performance/reward_bar_by_name', performance_views.reward_bar_by_name, name="reward_bar_by_name"),
     path('performance/reward_line', performance_views.reward_line, name="reward_line"),
     path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
+    path('performance/workload_summary_export/', performance_views.workload_summary_export, name="workload_summary_export"),
 ]

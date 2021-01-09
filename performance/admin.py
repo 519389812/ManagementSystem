@@ -1,5 +1,5 @@
 from django.contrib import admin
-from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, WorkloadRecord, ReferenceType, Reference, RewardRecord
+from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, WorkloadRecord, ReferenceType, Reference, RewardRecord, WorkloadSummary
 from team.models import Team
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
@@ -299,14 +299,52 @@ class RewardRecordAdmin(admin.ModelAdmin):
 class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team')
 
-    # list_filter = (
-    #     ('start_datetime', DateTimeRangeFilter),
-    # )
+    list_filter = (
+        ('start_datetime', DateTimeRangeFilter),
+    )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
+
+
+class WorkloadSummaryAdmin(admin.ModelAdmin):
+    change_list_template = "admin/workload_summary_change_list.html"
+
+    list_filter = (
+        ('start_datetime', DateTimeRangeFilter),
+        'position', 'user__team__name',
+    )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = return_get_queryset(request, qs)
+        return qs
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context=extra_context)
+        try:
+            qs = response.context_data['cl'].queryset
+        except (AttributeError, KeyError):
+            return response
+        metrics = {
+            'count': Count('user'),
+            'shift_workload': Sum('shift__workload'),
+            'shift_score': Sum('shift__score'),
+            'shift_bonus': Sum('shift__bonus'),
+            'position_workload': Sum('position__workload'),
+            'position_score': Sum('position__score'),
+            'position_bonus': Sum('position__bonus'),
+            'total_workload': Sum('shift__workload') + Sum('position__workload'),
+            'total_score': Sum('shift__score') + Sum('position__score'),
+            'total_bonus': Sum('shift__bonus') + Sum('position__bonus'),
+        }
+        response.context_data['summary'] = list(
+            qs.values("user__last_name", "user__first_name").annotate(**metrics).order_by('-total_workload')
+        )
+        return response
+
 
 # Article._meta.get_field('title').verbose_name
 
@@ -325,3 +363,4 @@ admin.site.register(ReferenceType, ReferenceTypeAdmin)
 admin.site.register(Reference, ReferenceAdmin)
 admin.site.register(RewardRecord, RewardRecordAdmin)
 admin.site.register(WorkloadRecord, WorkloadRecordAdmin)
+admin.site.register(WorkloadSummary, WorkloadSummaryAdmin)

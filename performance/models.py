@@ -220,8 +220,8 @@ class WorkloadRecord(models.Model):
     remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     verified = models.BooleanField(default=False, verbose_name="审核状态")
-    verified_user = models.ForeignKey(User, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
-    verified_datetime = models.DateTimeField(blank=True, verbose_name="审核时间")
+    verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
+    verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
 
     class Meta:
         verbose_name = '工作量记录'
@@ -229,3 +229,11 @@ class WorkloadRecord(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class WorkloadSummary(WorkloadRecord):
+
+    class Meta:
+        proxy = True
+        verbose_name = '工作量记录'
+        verbose_name_plural = "              工作量统计"

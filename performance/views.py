@@ -138,6 +138,11 @@ def reward_line(request):
 
 
 @check_authority
+def workload_summary_export(request):
+    pass
+
+
+@check_authority
 def get_addinfo_list_data(request, addinfos_all_list):
     paginator = Paginator(addinfos_all_list, settings.EACH_PAGE_ADDINFOS_NUMBER)
     page_num = request.GET.get('page', 1)  # 获取url的页面参数（GET请求）
