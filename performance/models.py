@@ -3,20 +3,46 @@ import django.utils.timezone as timezone
 from user.models import User
 from team.models import Team
 from django.contrib import admin
+from django.apps import apps
 
 
 class Rule(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True, verbose_name="名称")
-    condition = models.CharField(max_length=100, verbose_name="条件")
+    effect = models.CharField(max_length=100, verbose_name="作用于")
+    date_condition = models.CharField(max_length=100, null=True, blank=True, verbose_name="时间条件")
+    condition = models.CharField(max_length=100, null=True, blank=True, verbose_name="数量条件")
+    score = models.CharField(max_length=100, null=True, blank=True, verbose_name="分数权重")
+    workload = models.CharField(max_length=100, null=True, blank=True, verbose_name="工作量权重")
+    bonus = models.CharField(max_length=100, null=True, blank=True, verbose_name="奖金权重")
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+
+    def __init__(self, *args, **kwargs):
+        super(Rule, self).__init__(*args, **kwargs)
+        rule_choices = []
+        for model in list(apps.get_app_config('performance').get_models()):
+            try:
+                model._meta.get_field('rule')
+                rule_choices.append((model._meta.model_name, model._meta.verbose_name))
+            except:
+                pass
+        self._meta.get_field('effect').choices = tuple(rule_choices)
 
     class Meta:
         verbose_name = '规则'
         verbose_name_plural = " 规则"
 
+    def get_name_weight(self):
+        date_condition = self.date_condition if self.date_condition else '无条件'
+        condition = self.condition if self.condition else '无条件'
+        score = self.score if self.score else '无权重'
+        workload = self.workload if self.workload else '无权重'
+        bonus = self.bonus if self.bonus else '无权重'
+        get_name_weight = self.name + '\n条件：时间' + date_condition + '，数量' + condition + '\n权重：分数' + score + '，工作量' + workload + '，奖金' + bonus
+        return get_name_weight
+
     def __str__(self):
-        return self.name
+        return self.get_name_weight()
 
 
 class Level(models.Model):
@@ -94,15 +120,8 @@ class Skill(models.Model):
         return self.name
 
 
-reward_type_choice = (
-    ("正向", "正向"),
-    ("负向", "负向"),
-)
-
-
 class RewardType(models.Model):
     id = models.AutoField(primary_key=True)
-    type = models.CharField(max_length=10, choices=reward_type_choice, verbose_name="性质")
     name = models.CharField(max_length=100, unique=True, verbose_name="奖惩类别")
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
 
@@ -118,7 +137,7 @@ class Reward(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(RewardType, on_delete=models.CASCADE, verbose_name="奖惩类别")
     name = models.CharField(max_length=100, unique=True, verbose_name="奖惩名称")
-    score = models.FloatField(verbose_name="奖惩基础分")
+    score = models.FloatField(verbose_name="奖惩基础分数")
     workload = models.FloatField(verbose_name="奖惩基础工作量")
     bonus = models.FloatField(verbose_name="奖惩基础奖金")
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
@@ -132,24 +151,10 @@ class Reward(models.Model):
         return self.name
 
 
-class ShiftType(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="班次类别")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
-
-    class Meta:
-        verbose_name = '班次类别'
-        verbose_name_plural = "         班次类别"
-
-    def __str__(self):
-        return self.name
-
-
 class Shift(models.Model):
     id = models.AutoField(primary_key=True)
-    type = models.ForeignKey(ShiftType, on_delete=models.CASCADE, verbose_name="班次类别")
     name = models.CharField(max_length=100, unique=True, verbose_name="班次")
-    score = models.FloatField(verbose_name="班次基础分")
+    score = models.FloatField(verbose_name="班次基础分数")
     workload = models.FloatField(verbose_name="班次基础工作量")
     bonus = models.FloatField(verbose_name="班次基础奖金")
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
@@ -207,6 +212,14 @@ class RewardRecord(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class RewardSummary(RewardRecord):
+
+    class Meta:
+        proxy = True
+        verbose_name = '奖惩记录'
+        verbose_name_plural = "             奖惩统计"
 
 
 class WorkloadRecord(models.Model):

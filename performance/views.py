@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
-from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, WorkloadRecord, ReferenceType, Reference, RewardRecord
+from performance.models import Position
 from team.models import Team
 from user.views import check_authority
 from ManagementSystem.views import parse_url_param

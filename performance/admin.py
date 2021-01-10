@@ -1,10 +1,14 @@
 from django.contrib import admin
-from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, ShiftType, Shift, WorkloadRecord, ReferenceType, Reference, RewardRecord, WorkloadSummary
+from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, Shift, ReferenceType, Reference, RewardRecord, RewardSummary, WorkloadRecord, WorkloadSummary
 from team.models import Team
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from django.db.models import Count, Sum, DateTimeField, DateField, Min, Max
 from django.db.models.functions import Trunc
+from django.apps import apps
+from django.utils import timezone
+import re
+from django.contrib import messages
 
 
 def return_get_queryset(request, qs):
@@ -28,6 +32,12 @@ def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, ob
     return kwargs
 
 
+def return_formfield_for_foreignkey_rule(request, db_field, kwargs, db_field_name, obj, model_name):
+    if db_field.name == db_field_name:
+        kwargs["queryset"] = obj.objects.filter(effect=model_name)
+    return kwargs
+
+
 def return_get_model_perms(self, request):
     if request.user.is_superuser:
          model_perms = {
@@ -41,23 +51,15 @@ def return_get_model_perms(self, request):
 
 
 class RuleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'condition')
-
-    def get_condition_reference(self, obj):
-        return ' '.join([i.reference for i in obj.rule.all()])
-    get_condition_reference.short_description = "参考字段"
-
-    def get_condition_symbol(self, obj):
-        return ' '.join([i.symbol for i in obj.rule.all()])
-    get_condition_symbol.short_description = "符号"
-
-    def get_condition_case(self, obj):
-        return ' '.join([i.case for i in obj.rule.all()])
-    get_condition_case.short_description = "条件"
+    list_display = ('name', 'effect', 'date_condition', 'condition', 'score', 'workload', 'bonus')
 
     def get_form(self, request, obj=None, **kwargs):
         help_texts = {
-            'condition': '案例：如需要规定某个差错，30天内重复两次以上双倍扣罚的规则，则条件设为：“日期|<=90day|*2“',
+            'date_condition': '如需要规定90天内重复某个差错，则时间条件设为：“<=90“',
+            'condition': '如需要规定数量2次以上，则条件设为：“>=2“',
+            'score': '如需设置双倍分数奖罚，则设为：“*2“',
+            'workload': '如需设置扣20工作量，则设为：“-20“',
+            'bonus': '如需设置奖金减半，则设为：“/2“',
         }
         kwargs.update({'help_texts': help_texts})
         return super(RuleAdmin, self).get_form(request, obj, **kwargs)
@@ -70,6 +72,22 @@ class RuleAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
         return super(RuleAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        if form.is_valid():
+            if obj.effect == "level":
+                if obj.date_condition:
+                    obj.date_condition = None
+                    messages.error(request, "注意：当规则作用于程度时，日期条件和数量条件无效！")
+                if obj.condition:
+                    obj.condition = None
+                    messages.error(request, "注意：当规则作用于程度时，日期条件和数量条件无效！")
+            elif obj.effect == "skill":
+                if obj.date_condition:
+                    obj.date_condition = None
+                    messages.error(request, "注意：当规则作用于技能时，日期条件无效！")
+            super().save_model(request, obj, form, change)
+
 
     # def formfield_for_manytomany(self, db_field, request, **kwargs):
     #     """
@@ -105,6 +123,7 @@ class LevelAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'level')
         return super(LevelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -163,6 +182,7 @@ class SkillAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'skill')
         return super(SkillAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -192,27 +212,12 @@ class RewardAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'reward')
         return super(RewardAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class ShiftTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs)
-        return qs
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        return super(ShiftTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def get_model_perms(self, request):
-        return return_get_model_perms(self, request)
-
-
 class ShiftAdmin(admin.ModelAdmin):
-    list_display = ('type', 'name', 'score', 'workload', 'bonus')
+    list_display = ('name', 'score', 'workload', 'bonus')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -254,17 +259,60 @@ class ReferenceAdmin(admin.ModelAdmin):
 
 
 class RewardRecordAdmin(admin.ModelAdmin):
-    list_display = ('user', 'date', 'reward', 'get_reference', 'title', 'level')
+    list_display = ('user', 'date', 'reward', 'get_reference', 'title', 'level', 'get_initial_performance', 'calculate_weightl_performance')
+    fields = ('user', 'date', 'reward', 'get_reward_rule', 'reference', 'title', 'level', 'get_level_rule', 'content', 'get_initial_performance', 'calculate_weightl_performance', 'created_datetime', 'created_user')
     list_display_links = ('reward',)
     filter_horizontal = ('reference',)
+    readonly_fields = ("get_reward_rule", "get_level_rule", "created_datetime", "created_user", 'get_initial_performance', 'calculate_weightl_performance')
     list_filter = (
         ('date', DateRangeFilter), 'user__team'
     )
-    change_list_template = 'admin/reward_summary_change_list.html'
+
+    def get_reward_rule(self, obj):
+        return obj.reward.rule if obj.reward.rule else "无"
+    get_reward_rule.short_description = "奖惩规则"
 
     def get_reference(self, obj):
         return ' '.join([i.name for i in obj.reference.all()])
     get_reference.short_description = "影响"
+
+    def get_level_rule(self, obj):
+        return obj.level.rule if obj.level.rule else "无"
+    get_level_rule.short_description = "程度规则"
+
+    def get_initial_performance(self, obj):
+        return '分数: %s, 工作量: %s, 奖金: %s' % (obj.reward.score, obj.reward.workload, obj.reward.bonus)
+    get_initial_performance.short_description = "初始分值"
+
+    def calculate_weightl_performance(self, obj):
+        workload = obj.reward.workload
+        score = obj.reward.score
+        bonus = obj.reward.bonus
+        if obj.reward.rule:
+            if obj.reward.rule.date_condition:
+                end_date = obj.date
+                date_delta = int(re.findall(r'\d+', obj.reward.rule.date_condition)[0])
+                start_date = end_date - timezone.timedelta(date_delta)
+                count = RewardRecord.objects.filter(user=obj.user, date__gte=start_date, date__lte=end_date).count()
+            else:
+                count = RewardRecord.objects.filter(user=obj.user).count()
+            if obj.reward.rule.condition:
+                match = eval('count %s' % obj.reward.rule.condition)
+                if match:
+                    workload = eval('workload %s' % obj.reward.rule.workload) if obj.reward.rule.workload else workload
+                    score = eval('score %s' % obj.reward.rule.score) if obj.reward.rule.score else score
+                    bonus = eval('bonus %s' % obj.reward.rule.bonus) if obj.reward.rule.bonus else bonus
+            else:
+                if count > 0:
+                    workload = eval('workload %s' % obj.reward.rule.workload) if obj.reward.rule.workload else workload
+                    score = eval('score %s' % obj.reward.rule.score) if obj.reward.rule.score else score
+                    bonus = eval('bonus %s' % obj.reward.rule.bonus) if obj.reward.rule.bonus else bonus
+        if obj.level.rule:
+            workload = eval('workload %s' % obj.level.rule.workload) if obj.level.rule.workload else workload
+            score = eval('score %s' % obj.level.rule.score) if obj.level.rule.score else score
+            bonus = eval('bonus %s' % obj.level.rule.bonus) if obj.level.rule.bonus else bonus
+        return '分数: %s, 工作量: %s, 奖金: %s' % (score, workload, bonus)
+    calculate_weightl_performance.short_description = "计算权重后"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -281,12 +329,6 @@ class RewardRecordAdmin(admin.ModelAdmin):
                 pass
         return super(RewardRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.is_superuser:
-            return ["created_user", ]
-        else:
-            return []
-
     def save_model(self, request, obj, form, change):
         if form.is_valid():
             if not request.user.is_superuser:
@@ -294,6 +336,42 @@ class RewardRecordAdmin(admin.ModelAdmin):
                 super().save_model(request, obj, form, change)
             else:
                 super().save_model(request, obj, form, change)
+
+
+class RewardSummaryAdmin(admin.ModelAdmin):
+    change_list_template = "admin/reward_summary_change_list.html"
+
+    list_filter = (
+        ('date', DateTimeRangeFilter), 'user__team__name'
+    )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = return_get_queryset(request, qs)
+        return qs
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context=extra_context)
+        try:
+            qs = response.context_data['cl'].queryset
+        except (AttributeError, KeyError):
+            return response
+        metrics = {
+            'count': Count('user'),
+            'shift_workload': Sum('shift__workload'),
+            'shift_score': Sum('shift__score'),
+            'shift_bonus': Sum('shift__bonus'),
+            'position_workload': Sum('position__workload'),
+            'position_score': Sum('position__score'),
+            'position_bonus': Sum('position__bonus'),
+            'total_workload': Sum('shift__workload') + Sum('position__workload'),
+            'total_score': Sum('shift__score') + Sum('position__score'),
+            'total_bonus': Sum('shift__bonus') + Sum('position__bonus'),
+        }
+        response.context_data['summary'] = list(
+            qs.values("user__last_name", "user__first_name").annotate(**metrics).order_by('-total_workload')
+        )
+        return response
 
 
 class WorkloadRecordAdmin(admin.ModelAdmin):
@@ -346,9 +424,6 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
         return response
 
 
-# Article._meta.get_field('title').verbose_name
-
-
 admin.site.register(Rule, RuleAdmin)
 admin.site.register(Level, LevelAdmin)
 admin.site.register(PositionType, PositionTypeAdmin)
@@ -357,10 +432,10 @@ admin.site.register(SkillType, SkillTypeAdmin)
 admin.site.register(Skill, SkillAdmin)
 admin.site.register(RewardType, RewardTypeAdmin)
 admin.site.register(Reward, RewardAdmin)
-admin.site.register(ShiftType, ShiftTypeAdmin)
 admin.site.register(Shift, ShiftAdmin)
 admin.site.register(ReferenceType, ReferenceTypeAdmin)
 admin.site.register(Reference, ReferenceAdmin)
 admin.site.register(RewardRecord, RewardRecordAdmin)
+admin.site.register(RewardSummary, RewardSummaryAdmin)
 admin.site.register(WorkloadRecord, WorkloadRecordAdmin)
 admin.site.register(WorkloadSummary, WorkloadSummaryAdmin)
