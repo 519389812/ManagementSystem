@@ -163,7 +163,7 @@ def send_register_verify_email(request):
         code = random_str(16)
         EmailVerifyRecord.objects.create(user=request.user, email=email_address, code=code, type="register", close_datetime=timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5))
         email_title = "管理系统 - 邮箱激活链接"
-        email_body = "请点击下面的链接激活你的账号，有效期为5分钟: https://%s/verify_register_email/%s" % (request.get_host(), code)
+        email_body = "请点击下面的链接激活你的账号，有效期为5分钟: http://%s/verify_register_email/%s" % (request.get_host(), code)
         send_status = send_mail(email_title, email_body, EMAIL_FROM, [email_address])
         if send_status:
             return render(request, "register_verify_email.html", {"msg": "邮件已发送，请登录邮箱查收"})

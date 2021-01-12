@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
-from performance.models import Position
+from performance.models import Position, RewardRecord, WorkloadRecord
 from team.models import Team
 from user.views import check_authority
 from ManagementSystem.views import parse_url_param
@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import datetime
 from django.contrib import messages
+from io import BytesIO
 
 from jinja2 import Environment, FileSystemLoader
 from pyecharts.globals import CurrentConfig
@@ -137,9 +138,33 @@ def reward_line(request):
     return HttpResponse(l.render_embed())
 
 
-@check_authority
 def workload_summary_export(request):
-    pass
+    url = request.META.get("HTTP_REFERER", "")
+    if url == "":
+        return render(request, "error_400.html", status=400)
+    url_params = parse_url_param(url)
+    queryset = get_queryset(url_params, 'WorkloadRecord')
+    if queryset.count() == 0:
+        messages.error(request, "筛选数据为空")
+        return redirect(url)
+    print(queryset)
+    return
+    outfile = BytesIO()
+    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
+    data = data.rename(columns={'id': '序号', 'employee_name_id': '员工姓名', 'position_name_id': '岗位',
+                                'position_score': '岗位基础分', 'shifts': '早晚班', 'score': '评分',
+                                'penalty_details': '奖惩', 'total_score': '总分', 'date': '日期', "remark": "备注"})
+    data = data[["序号", "员工姓名", "岗位", "岗位基础分", "早晚班", "评分", "奖惩", "总分", "日期", "备注"]]
+    data = data.sort_values(by=["员工姓名"], ascending=True)
+    data = data.fillna("")
+    data = pd.pivot_table(data, values=["总分"], index=["员工姓名"], aggfunc=np.sum)
+    filename = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment;filename="{}"'.format(
+        "Export pivot by score " + filename + ".xlsx")
+    data.to_excel(outfile)
+    response.write(outfile.getvalue())
+    return response
 
 
 @check_authority

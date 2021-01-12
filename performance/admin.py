@@ -3,12 +3,13 @@ from performance.models import Level, Rule, PositionType, Position, SkillType, S
 from team.models import Team
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
-from django.db.models import Count, Sum, DateTimeField, DateField, Min, Max
+from django.db.models import Count, Sum, DateTimeField, DateField, Min, Max, Avg, F, ExpressionWrapper, fields, Value, Func
 from django.db.models.functions import Trunc
 from django.apps import apps
 from django.utils import timezone
 import re
 from django.contrib import messages
+import datetime
 
 
 def return_get_queryset(request, qs):
@@ -259,11 +260,11 @@ class ReferenceAdmin(admin.ModelAdmin):
 
 
 class RewardRecordAdmin(admin.ModelAdmin):
-    list_display = ('user', 'date', 'reward', 'get_reference', 'title', 'level', 'get_initial_performance', 'calculate_weightl_performance')
-    fields = ('user', 'date', 'reward', 'get_reward_rule', 'reference', 'title', 'level', 'get_level_rule', 'content', 'get_initial_performance', 'calculate_weightl_performance', 'created_datetime', 'created_user')
+    list_display = ('user', 'date', 'reward', 'get_reference', 'title', 'level', 'get_initial_reward', 'get_weight_reward')
+    fields = ('user', 'date', 'reward', 'get_reward_rule', 'reference', 'title', 'level', 'get_level_rule', 'content', 'get_initial_reward', 'get_weight_reward', 'created_datetime', 'created_user')
     list_display_links = ('reward',)
     filter_horizontal = ('reference',)
-    readonly_fields = ("get_reward_rule", "get_level_rule", "created_datetime", "created_user", 'get_initial_performance', 'calculate_weightl_performance')
+    readonly_fields = ("get_reward_rule", "get_level_rule", "created_datetime", "created_user", 'get_initial_reward', 'get_weight_reward')
     list_filter = (
         ('date', DateRangeFilter), 'user__team'
     )
@@ -280,11 +281,11 @@ class RewardRecordAdmin(admin.ModelAdmin):
         return obj.level.rule if obj.level.rule else "无"
     get_level_rule.short_description = "程度规则"
 
-    def get_initial_performance(self, obj):
+    def get_initial_reward(self, obj):
         return '分数: %s, 工作量: %s, 奖金: %s' % (obj.reward.score, obj.reward.workload, obj.reward.bonus)
-    get_initial_performance.short_description = "初始分值"
+    get_initial_reward.short_description = "初始分值"
 
-    def calculate_weightl_performance(self, obj):
+    def get_weight_reward(self, obj):
         workload = obj.reward.workload
         score = obj.reward.score
         bonus = obj.reward.bonus
@@ -312,7 +313,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
             score = eval('score %s' % obj.level.rule.score) if obj.level.rule.score else score
             bonus = eval('bonus %s' % obj.level.rule.bonus) if obj.level.rule.bonus else bonus
         return '分数: %s, 工作量: %s, 奖金: %s' % (score, workload, bonus)
-    calculate_weightl_performance.short_description = "计算权重后"
+    get_weight_reward.short_description = "计算权重后"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -375,16 +376,54 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 
 
 class WorkloadRecordAdmin(admin.ModelAdmin):
-    list_display = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team')
-
+    list_display = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified')
+    list_editable = ('verified',)
+    fields = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
+    readonly_fields = ('created_datetime', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified_user', 'verified_datetime')
     list_filter = (
-        ('start_datetime', DateTimeRangeFilter),
+        ('start_datetime', DateTimeRangeFilter), 'user__team__name',
     )
+
+    def get_form(self, request, obj=None, **kwargs):
+        help_texts = {
+            'working_time': '注意：工作时长超过24小时判定为无效!',
+        }
+        kwargs.update({'help_texts': help_texts})
+        return super(WorkloadRecordAdmin, self).get_form(request, obj, **kwargs)
+
+    def get_initial_score(self, obj):
+        return (obj.shift.score + obj.position.score) * obj.working_time
+    get_initial_score.short_description = "分值"
+
+    def get_initial_workload(self, obj):
+        return (obj.shift.workload + obj.position.workload) * obj.working_time
+    get_initial_workload.short_description = "工作量"
+
+    def get_initial_bonus(self, obj):
+        return obj.shift.bonus + obj.position.bonus
+    get_initial_bonus.short_description = "奖金"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
+
+    def save_model(self, request, obj, form, change):
+        if form.is_valid():
+            working_time = round((timezone.localtime(obj.end_datetime) - timezone.localtime(obj.start_datetime)).total_seconds() / 3600, 2)
+            if working_time > 24:
+                messages.error(request, "保存失败！工作时长超过最大限制24小时！")
+                messages.set_level(request, messages.ERROR)
+                return
+            if not change:
+                super().save_model(request, obj, form, change)
+            obj.working_time = working_time
+            verified_before = WorkloadRecord.objects.get(id=obj.id).verified
+            verified_after = form.cleaned_data["verified"]
+            if verified_before != verified_after and verified_after is True:
+                obj.verified_user = request.user
+                obj.verified_datetime = timezone.localtime(timezone.now())
+            super().save_model(request, obj, form, change)
 
 
 class WorkloadSummaryAdmin(admin.ModelAdmin):
@@ -408,18 +447,18 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
             return response
         metrics = {
             'count': Count('user'),
-            'shift_workload': Sum('shift__workload'),
-            'shift_score': Sum('shift__score'),
+            'shift_workload': Sum(F('shift__workload') * F('working_time')),
+            'shift_score': Sum(F('shift__score') * F('working_time')),
             'shift_bonus': Sum('shift__bonus'),
-            'position_workload': Sum('position__workload'),
-            'position_score': Sum('position__score'),
+            'position_workload': Sum(F('position__workload') * F('working_time')),
+            'position_score': Sum(F('position__score') * F('working_time')),
             'position_bonus': Sum('position__bonus'),
-            'total_workload': Sum('shift__workload') + Sum('position__workload'),
-            'total_score': Sum('shift__score') + Sum('position__score'),
+            'total_workload': Sum(F('shift__workload') * F('working_time')) + Sum(F('position__workload') * F('working_time')),
+            'total_score': Sum(F('shift__score') * F('working_time')) + Sum(F('position__score') * F('working_time')),
             'total_bonus': Sum('shift__bonus') + Sum('position__bonus'),
         }
         response.context_data['summary'] = list(
-            qs.values("user__last_name", "user__first_name").annotate(**metrics).order_by('-total_workload')
+            qs.filter(verified=True).values("user__last_name", "user__first_name").annotate(**metrics).order_by('-total_workload')
         )
         return response
 

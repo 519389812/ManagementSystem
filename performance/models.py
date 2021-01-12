@@ -229,6 +229,7 @@ class WorkloadRecord(models.Model):
     position = models.ForeignKey(Position, on_delete=models.CASCADE, verbose_name="岗位")
     start_datetime = models.DateTimeField(verbose_name="开始时间")
     end_datetime = models.DateTimeField(verbose_name="结束时间")
+    working_time = models.FloatField(null=True, blank=True, verbose_name="工作时长")
     assigned_team = models.ForeignKey(Team, related_name='assigned_team', on_delete=models.CASCADE, verbose_name="指派")
     remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
