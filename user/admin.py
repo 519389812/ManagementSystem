@@ -1,6 +1,7 @@
 from django.contrib import admin
 from user.models import User, EmailVerifyRecord, QuestionVerifyRecord, QuestionVerifySource
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.hashers import make_password
 
 
 class CustomUserAdmin(UserAdmin):
@@ -23,6 +24,11 @@ class EmailVerifyRecordAdmin(admin.ModelAdmin):
 
 class QuestionVerifySourceAdmin(admin.ModelAdmin):
     list_display = ('user', 'question', 'answer')
+
+    def save_model(self, request, obj, form, change):
+        if form.is_valid():
+            obj.answer = make_password(obj.answer)
+            super().save_model(request, obj, form, change)
 
 
 class QuestionVerifyRecordAdmin(admin.ModelAdmin):
