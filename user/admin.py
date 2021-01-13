@@ -1,5 +1,5 @@
 from django.contrib import admin
-from user.models import User, EmailVerifyRecord
+from user.models import User, EmailVerifyRecord, QuestionVerifyRecord, QuestionVerifySource
 from django.contrib.auth.admin import UserAdmin
 
 
@@ -21,8 +21,18 @@ class EmailVerifyRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'email', 'code', 'type', 'close_datetime')
 
 
+class QuestionVerifySourceAdmin(admin.ModelAdmin):
+    list_display = ('user', 'question', 'answer')
+
+
+class QuestionVerifyRecordAdmin(admin.ModelAdmin):
+    list_display = ('user', 'code', 'close_datetime')
+
+
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(EmailVerifyRecord, EmailVerifyRecordAdmin)
+admin.site.register(QuestionVerifySource, QuestionVerifySourceAdmin)
+admin.site.register(QuestionVerifyRecord, QuestionVerifyRecordAdmin)
 
 admin.site.site_header = '管理系统'
 admin.site.site_title = '管理系统'

@@ -31,7 +31,7 @@
         <div class="col-lg-8 mb-4">
             <h3>邮箱验证</h3>
             <div>{{ msg }}</div>
-            <form name="loginForm" id="loginForm" action="{% url 'send_register_verify_email' %}" method="post">
+            <form name="loginForm" id="loginForm" action="{% url 'send_set_user_verify_email' %}" method="post">
                 {% csrf_token %}
                 <div class="control-group form-group">
                     <div class="controls">

@@ -36,3 +36,31 @@ class EmailVerifyRecord(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class QuestionVerifySource(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    question = models.CharField(max_length=300, verbose_name='密保问题')
+    answer = models.CharField(max_length=300, verbose_name='密保答案')
+
+    class Meta:
+        verbose_name = '密保问题'
+        verbose_name_plural = '密保问题'
+
+    def __str__(self):
+        return self.user.username
+
+
+class QuestionVerifyRecord(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    code = models.CharField(max_length=20, verbose_name='验证码')
+    close_datetime = models.DateTimeField(verbose_name='过期时间')
+
+    class Meta:
+        verbose_name = '密保问题验证'
+        verbose_name_plural = '密保问题验证'
+
+    def __str__(self):
+        return self.user.username

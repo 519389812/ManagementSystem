@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.http import HttpResponse
-from user.models import User, EmailVerifyRecord
+from user.models import User, EmailVerifyRecord, QuestionVerifySource, QuestionVerifyRecord
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth import login as login_admin
 from django.contrib.auth import logout as logout_admin
@@ -150,31 +150,51 @@ def random_str(str_length=8):
 
 
 @check_authority
-def register_verify_email(request):
-    return render(request, "register_verify_email.html")
+def set_question_verify(request):
+    return render(request, "set_question_verify.html")
 
 
 @check_authority
-def send_register_verify_email(request):
+def save_question_verify(request):
     if request.method == "POST":
-        email_address = request.POST.get("email_address", "")
-        if not check_post_valudate(request, check_email_validate):
-            return render(request, "register_verify_email.html", {"msg": "请输入正确的邮箱格式!"})
-        code = random_str(16)
-        EmailVerifyRecord.objects.create(user=request.user, email=email_address, code=code, type="register", close_datetime=timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5))
-        email_title = "管理系统 - 邮箱激活链接"
-        email_body = "请点击下面的链接激活你的账号，有效期为5分钟: http://%s/verify_register_email/%s" % (request.get_host(), code)
-        send_status = send_mail(email_title, email_body, EMAIL_FROM, [email_address])
-        if send_status:
-            return render(request, "register_verify_email.html", {"msg": "邮件已发送，请登录邮箱查收"})
-        else:
-            return render(request, "register_verify_email.html", {"msg": "邮件发送失败，请检查邮箱地址或者检查邮箱接收设置"})
+        question = request.POST.get("question", "")
+        answer = request.POST.get("answer", "")
+        if not check_post_valudate(request, check_question_validate, check_answer_validate):
+            return render(request, "set_question_verify.html", {"msg": "请输入正确的格式！"})
+        if QuestionVerifySource.objects.filter(user=request.user).count() > 2:
+            return render(request, "user_setting.html", {"msg": "设置失败，已经超过最大问题数量！"})
+        QuestionVerifySource.objects.create(user=request.user, question=question, answer=make_password(answer))
+        return render(request, "user_setting.html", {"msg": "设置成功！"})
     else:
         return render(request, "error_400.html", status=400)
 
 
 @check_authority
-def verify_register_email(request, code):
+def set_email_verify(request):
+    return render(request, "set_email_verify.html")
+
+
+@check_authority
+def send_set_user_verify_email(request):
+    if request.method == "POST":
+        email_address = request.POST.get("email_address", "")
+        if not check_post_valudate(request, check_email_validate):
+            return render(request, "set_email_verify.html", {"msg": "请输入正确的邮箱格式!"})
+        code = random_str(16)
+        EmailVerifyRecord.objects.create(user=request.user, email=email_address, code=code, type="register", close_datetime=timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5))
+        email_title = "管理系统 - 邮箱激活链接"
+        email_body = "请点击下面的链接激活你的账号，有效期为5分钟: http://%s/check_set_user_verify_email/%s" % (request.get_host(), code)
+        send_status = send_mail(email_title, email_body, EMAIL_FROM, [email_address])
+        if send_status:
+            return render(request, "set_email_verify.html", {"msg": "邮件已发送，请登录邮箱查收"})
+        else:
+            return render(request, "set_email_verify.html", {"msg": "邮件发送失败，请检查邮箱地址或者检查邮箱接收设置"})
+    else:
+        return render(request, "error_400.html", status=400)
+
+
+@check_authority
+def check_set_user_verify_email(request, code):
     records = EmailVerifyRecord.objects.filter(code=code)
     if len(records) > 0:
         for record in records:
@@ -183,13 +203,80 @@ def verify_register_email(request, code):
                 user.email = record.email
                 user.save()
                 return render(request, 'user_setting.html', {"msg": "邮箱验证成功"})
-        return render(request, 'register_verify_email.html', {"msg": "验证码已过期"})
+        return render(request, 'set_email_verify.html', {"msg": "验证码已过期"})
     else:
-        return render(request, 'register_verify_email.html', {"msg": "验证失败，验证码错误"})
+        return render(request, 'set_email_verify.html', {"msg": "验证失败，验证码错误"})
 
 
-def reset_password_email(request):
-    return render(request, "reset_password_email.html")
+def pre_reset_password(request):
+    return render(request, "pre_reset_password.html")
+
+
+def pre_reset_password_by_question(request):
+    return render(request, "pre_reset_password_by_question.html")
+
+
+def pre_reset_password_by_email(request):
+    return render(request, "pre_reset_password_by_email.html")
+
+
+def select_reset_password_by_question(request):
+    if request.method == "POST":
+        username = request.POST.get("username", "")
+        if username == "":
+            return render(request, "pre_reset_password_by_question.html", {"msg": "用户名为空"})
+        try:
+            user = User.objects.get(username=username)
+            question_list = QuestionVerifySource.objects.filter(user=user).values('id', 'question')
+            return render(request, "select_reset_password_by_question.html", {"question_list": question_list})
+        except:
+            return render(request, "pre_reset_password_by_question.html", {"msg": "用户名不存在"})
+    else:
+        return render(request, "error_400.html", status=400)
+
+
+def check_reset_password_question(request):
+    if request.method == "POST":
+        question_id = request.POST.get("question_id", "")
+        answer = request.POST.get("answer", "")
+        if question_id == "" or answer == "":
+            return render(request, "select_reset_password_by_question.html", {"msg": "输入为空"})
+        try:
+            question = QuestionVerifySource.objects.get(id=int(question_id))
+            print(answer, make_password(answer))
+            if check_password(answer, question.answer):
+                code = random_str(16)
+                QuestionVerifyRecord.objects.create(user=question.user, code=code, close_datetime=timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5))
+                return render(request, "reset_password_by_question.html", {'code': code})
+            else:
+                return render(request, "pre_reset_password_by_question.html", {"msg": "答案不匹配，请检查"})
+        except:
+            return render(request, "pre_reset_password_by_question.html", {"msg": "问题不存在"})
+    else:
+        return render(request, "error_400.html", status=400)
+
+
+def reset_password_by_question(request, code):
+    if request.method == 'POST':
+        records = QuestionVerifyRecord.objects.filter(code=code)
+        if len(records) > 0:
+            for record in records:
+                if check_datetime_opened(timezone.localtime(record.close_datetime), timezone.localtime(timezone.now())):
+                    if not check_post_valudate(request, check_passwords_validate):
+                        return render(request, "reset_password_by_question.html", {"msg": "存在未按格式输入的字段!"})
+                    password = request.POST.get("password", "")
+                    password_repeat = request.POST.get("password_repeat", "")
+                    if password == "" or password_repeat == "":
+                        return render(request, 'reset_password_by_question.html', {"msg": "密码为空", "code": code})
+                    if password != password_repeat:
+                        return render(request, 'reset_password_by_question.html', {"msg": "两次输入的密码不一致", "code": code})
+                    user = User.objects.get(id=record.user.id)
+                    user.password = make_password(password)
+                    user.save()
+                    return render(request, 'login.html', {"msg": "密码修改成功"})
+            return render(request, 'reset_password_by_question.html', {"msg": "验证码已过期"})
+    else:
+        return render(request, "error_400.html", status=400)
 
 
 def send_reset_password_email(request):
@@ -200,24 +287,24 @@ def send_reset_password_email(request):
         try:
             user = User.objects.get(username=username)
         except:
-            return render(request, "reset_password_email.html", {"msg": "用户名不存在"})
+            return render(request, "pre_reset_password_by_email.html", {"msg": "用户名不存在"})
         email_address = request.POST.get("email_address", "")
         if not user.email == email_address:
-            return render(request, "reset_password_email.html", {"msg": "邮箱不匹配"})
+            return render(request, "pre_reset_password_by_email.html", {"msg": "邮箱不匹配"})
         code = random_str(16)
         EmailVerifyRecord.objects.create(user=user, code=code, type="reset", close_datetime=timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5))
         email_title = "管理系统 - 找回密码"
         email_body = "请点击下面的链接找回你的密码，有效期为5分钟: https://%s/reset_password/%s" % (request.get_host(), code)
         send_status = send_mail(email_title, email_body, EMAIL_FROM, [email_address])
         if send_status:
-            return render(request, "reset_password_email.html", {"msg": "邮件已发送，请登录邮箱查收"})
+            return render(request, "reset_password_by_email.html", {"msg": "邮件已发送，请登录邮箱查收"})
         else:
-            return render(request, "reset_password_email.html", {"msg": "邮件发送失败，请检查邮箱地址或者检查邮箱接收设置"})
+            return render(request, "pre_reset_password_by_email.html", {"msg": "邮件发送失败，请检查邮箱地址或者检查邮箱接收设置"})
     else:
         return render(request, "error_400.html", status=400)
 
 
-def reset_password(request, code):
+def reset_password_by_email(request, code):
     records = EmailVerifyRecord.objects.filter(code=code)
     if len(records) > 0:
         for record in records:
@@ -225,23 +312,23 @@ def reset_password(request, code):
                 if request.method == "GET":
                     record.close_datetime = timezone.localtime(timezone.now()) + datetime.timedelta(minutes=5)
                     record.save()
-                    return render(request, 'reset_password.html', {"msg": "验证成功，请于5分钟内重设密码", "code": code})
+                    return render(request, 'reset_password_by_email.html', {"msg": "验证成功，请于5分钟内重设密码", "code": code})
                 else:
                     if not check_post_valudate(request, check_passwords_validate):
-                        return render(request, "reset_password_email.html", {"msg": "存在未按格式输入的字段!"})
+                        return render(request, "reset_password_by_email.html", {"msg": "存在未按格式输入的字段!"})
                     password = request.POST.get("password", "")
                     password_repeat = request.POST.get("password_repeat", "")
                     if password == "" or password_repeat == "":
-                        return render(request, 'reset_password.html', {"msg": "密码为空", "code": code})
+                        return render(request, 'reset_password_by_email.html', {"msg": "密码为空", "code": code})
                     if password != password_repeat:
-                        return render(request, 'reset_password.html', {"msg": "两次输入的密码不一致", "code": code})
+                        return render(request, 'reset_password_by_email.html', {"msg": "两次输入的密码不一致", "code": code})
                     user = User.objects.get(id=record.user.id)
                     user.password = make_password(password)
                     user.save()
                     return render(request, 'login.html', {"msg": "密码修改成功"})
-        return render(request, 'reset_password_email.html', {"msg": "验证码已过期"})
+        return render(request, 'reset_password_by_email.html', {"msg": "验证码已过期"})
     else:
-        return render(request, 'reset_password_email.html', {"msg": "重设密码失败，验证码错误"})
+        return render(request, 'reset_password_by_email.html', {"msg": "重设密码失败，验证码错误"})
 
 
 @check_authority
@@ -374,6 +461,34 @@ def check_firstname_validate(request):
     return HttpResponse('')
 
 
+def check_question_validate(request):
+    try:
+        question = request.GET["question"]
+    except MultiValueDictKeyError:
+        question = request.POST.get("question")
+    if question == "":
+        return HttpResponse('密保问题不能为空')
+    if len(question) < 6 or len(question) > 50:
+        return HttpResponse('密保问题不能少于6个字符或者超过50个字符')
+    if not re.search(r'^[_a-zA-Z0-9\u4e00-\u9fa5\?\uff1f]+$', question):
+        return HttpResponse("密保问题包含非法字符(!,@,#,$,%...)")
+    return HttpResponse('')
+
+
+def check_answer_validate(request):
+    try:
+        answer = request.GET["answer"]
+    except MultiValueDictKeyError:
+        answer = request.POST.get("answer")
+    if answer == "":
+        return HttpResponse('密保答案不能为空')
+    if len(answer) < 2 or len(answer) > 16:
+        return HttpResponse('密保答案不能少于2个字符或者超过16个字符')
+    if not re.search(r'^[_a-zA-Z0-9\u4e00-\u9fa5]+$', answer):
+        return HttpResponse("密保答案包含非法字符(!,@,#,$,%...)")
+    return HttpResponse('')
+
+
 def check_email_validate(request):
     try:
         email_address = request.GET["email_address"]
@@ -389,7 +504,6 @@ def check_email_validate(request):
 def check_post_valudate(request, *args):
     check_method = args
     for method in check_method:
-        print(method)
         if method(request).content != b'':
             return False
     return True
