@@ -22,47 +22,17 @@
                     </th>
                     <th>
                         <div class="text">
-                            <a href="#">班次工作量</a>
+                            <a href="#">分数</a>
                         </div>
                     </th>
                     <th>
                         <div class="text">
-                            <a href="#">班次分数</a>
+                            <a href="#">工作量</a>
                         </div>
                     </th>
                     <th>
                         <div class="text">
-                            <a href="#">班次奖金</a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="text">
-                            <a href="#">岗位工作量</a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="text">
-                            <a href="#">岗位分数</a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="text">
-                            <a href="#">岗位奖金</a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="text">
-                            <a href="#"><strong>总工作量</strong></a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="text">
-                            <a href="#"><strong>总分数</strong></a>
-                        </div>
-                    </th>
-                    <th>
-                        <div class="text">
-                            <a href="#"><strong>总奖金</strong></a>
+                            <a href="#">奖金</a>
                         </div>
                     </th>
                 </tr>
@@ -73,15 +43,9 @@
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ row.user__last_name }}{{ row.user__first_name }}</td>
                         <td>{{ row.count }}</td>
-                        <td>{{ row.shift_workload }}</td>
-                        <td>{{ row.shift_score }}</td>
-                        <td>{{ row.shift_bonus }}</td>
-                        <td>{{ row.position_workload }}</td>
-                        <td>{{ row.position_score }}</td>
-                        <td>{{ row.position_bonus }}</td>
-                        <td><strong>{{ row.total_workload }}</strong></td>
-                        <td><strong>{{ row.total_score }}</strong></td>
-                        <td><strong>{{ row.total_bonus }}</strong></td>
+                        <td>{{ row.bonus }}</td>
+                        <td>{{ row.score }}</td>
+                        <td>{{ row.workload }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -76,6 +76,34 @@ def reward_bar_summary(request):
 
 
 @check_authority
+def reward_bar_by_(request):
+    url = request.META.get("HTTP_REFERER", "")
+    if url == "":
+        return render(request, "error_400.html", status=400)
+    url_params = parse_url_param(url)
+    queryset = get_queryset(url_params, 'RewardRecord')
+    if queryset.count() == 0:
+        messages.error(request, "筛选数据为空")
+        return redirect(url)
+    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
+    data['name'] = data['user__last_name'] + data['user__first_name']
+    data = data[['name', 'reward__name']]
+    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
+    data['次数'] = data['姓名']
+    data = pd.pivot_table(data, values=["次数"], index=["姓名", "奖惩名称"], aggfunc=np.count_nonzero)
+    first_list, second_list = zip(*data.index.values)
+    first_list, second_list = set(first_list), set(second_list)
+    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="按姓名"))
+    bar.add_xaxis(second_list)
+    for value in first_list:
+        bar.add_yaxis(value, data.loc[value]["次数"].values.tolist())
+    b = (
+        bar
+         )
+    return HttpResponse(b.render_embed())
+
+
+@check_authority
 def reward_bar_by_name(request):
     url = request.META.get("HTTP_REFERER", "")
     if url == "":
@@ -232,7 +260,7 @@ def add_succeed(request):
 @check_authority
 def approval(request):
     addinfos_list_obj = list(AddWorkload.objects.all())
-    return render(request, "addworkload_approval.html",{'addinfos_list':addinfos_list_obj})
+    return render(request, "addworkload_approval.html", {'addinfos_list':addinfos_list_obj})
 
 
 @check_authority

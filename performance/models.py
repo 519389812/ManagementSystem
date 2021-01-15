@@ -167,41 +167,16 @@ class Shift(models.Model):
         return self.name
 
 
-class ReferenceType(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="类型名称")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
-
-    class Meta:
-        verbose_name = '涉及类别'
-        verbose_name_plural = "           涉及类别"
-
-    def __str__(self):
-        return self.name
-
-
-class Reference(models.Model):
-    id = models.AutoField(primary_key=True)
-    type = models.ForeignKey(ReferenceType, on_delete=models.CASCADE, verbose_name="涉及类别")
-    name = models.CharField(max_length=100, unique=True, verbose_name="涉及内容名称")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
-
-    class Meta:
-        verbose_name = '涉及内容'
-        verbose_name_plural = "            涉及内容"
-
-    def __str__(self):
-        return self.name
-
-
 class RewardRecord(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, related_name='reward_user', on_delete=models.CASCADE, verbose_name="责任人")
     date = models.DateField(verbose_name="日期")
     reward = models.ForeignKey(Reward, on_delete=models.CASCADE, verbose_name="奖惩")
-    reference = models.ManyToManyField(Reference, blank=True, verbose_name="影响")
-    title = models.CharField(max_length=500, verbose_name="简述")
     level = models.ForeignKey(Level, on_delete=models.CASCADE, verbose_name="程度")
+    score = models.FloatField(null=True, blank=True, verbose_name="分数")
+    workload = models.FloatField(null=True, blank=True, verbose_name="工作量")
+    bonus = models.FloatField(null=True, blank=True, verbose_name="奖金")
+    title = models.CharField(max_length=500, verbose_name="简述")
     content = models.TextField(max_length=1000, blank=True, verbose_name="详细情况")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     created_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="登记人")
