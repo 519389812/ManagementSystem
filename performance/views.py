@@ -19,7 +19,7 @@ from pyecharts.globals import CurrentConfig
 CurrentConfig.GLOBAL_ENV = Environment(loader=FileSystemLoader("{}/templates/pyecharts".format(settings.BASE_DIR)))
 
 from pyecharts import options as opts
-from pyecharts.charts import Bar, Line
+from pyecharts.charts import Bar, Line, Grid
 from pyecharts.globals import ThemeType
 
 
@@ -37,7 +37,6 @@ def get_queryset(url_params, object_):
         filter_str = ''
         for key, value in url_params.items():
             if "date" in key:
-                print(key)
                 filter_str += key.replace("__range", "") + '="' + value[0].replace("/", "-") + '", '
             elif "id" in key:
                 filter_str += key + '=' + value[0] + ', '
@@ -51,7 +50,7 @@ def get_queryset(url_params, object_):
 
 
 @check_authority
-def reward_bar_summary(request):
+def reward_grid(request):
     url = request.META.get("HTTP_REFERER", "")
     if url == "":
         return render(request, "error_400.html", status=400)
@@ -60,87 +59,8 @@ def reward_bar_summary(request):
     if queryset.count() == 0:
         messages.error(request, "筛选数据为空")
         return redirect(url)
-    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
-    data['name'] = data['user__last_name'] + data['user__first_name']
-    data = data[['name', 'reward__name']]
-    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
-    data['次数'] = data['姓名']
-    data = pd.pivot_table(data, values=["次数"], index=["奖惩名称"], aggfunc=np.count_nonzero)
-    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="总体"))
-    bar.add_xaxis(data.index.values.tolist())
-    bar.add_yaxis("奖惩类型", data["次数"].values.tolist())
-    c = (
-        bar
-         )
-    return HttpResponse(c.render_embed())
 
-
-@check_authority
-def reward_bar_by_(request):
-    url = request.META.get("HTTP_REFERER", "")
-    if url == "":
-        return render(request, "error_400.html", status=400)
-    url_params = parse_url_param(url)
-    queryset = get_queryset(url_params, 'RewardRecord')
-    if queryset.count() == 0:
-        messages.error(request, "筛选数据为空")
-        return redirect(url)
-    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
-    data['name'] = data['user__last_name'] + data['user__first_name']
-    data = data[['name', 'reward__name']]
-    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
-    data['次数'] = data['姓名']
-    data = pd.pivot_table(data, values=["次数"], index=["姓名", "奖惩名称"], aggfunc=np.count_nonzero)
-    first_list, second_list = zip(*data.index.values)
-    first_list, second_list = set(first_list), set(second_list)
-    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="按姓名"))
-    bar.add_xaxis(second_list)
-    for value in first_list:
-        bar.add_yaxis(value, data.loc[value]["次数"].values.tolist())
-    b = (
-        bar
-         )
-    return HttpResponse(b.render_embed())
-
-
-@check_authority
-def reward_bar_by_name(request):
-    url = request.META.get("HTTP_REFERER", "")
-    if url == "":
-        return render(request, "error_400.html", status=400)
-    url_params = parse_url_param(url)
-    queryset = get_queryset(url_params, 'RewardRecord')
-    if queryset.count() == 0:
-        messages.error(request, "筛选数据为空")
-        return redirect(url)
-    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
-    data['name'] = data['user__last_name'] + data['user__first_name']
-    data = data[['name', 'reward__name']]
-    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
-    data['次数'] = data['姓名']
-    data = pd.pivot_table(data, values=["次数"], index=["姓名", "奖惩名称"], aggfunc=np.count_nonzero)
-    first_list, second_list = zip(*data.index.values)
-    first_list, second_list = set(first_list), set(second_list)
-    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="按姓名"))
-    bar.add_xaxis(second_list)
-    for value in first_list:
-        bar.add_yaxis(value, data.loc[value]["次数"].values.tolist())
-    b = (
-        bar
-         )
-    return HttpResponse(b.render_embed())
-
-
-@check_authority
-def reward_line(request):
-    url = request.META.get("HTTP_REFERER", "")
-    if url == "":
-        return render(request, "error_400.html", status=400)
-    url_params = parse_url_param(url)
-    queryset = get_queryset(url_params, 'RewardRecord')
-    if queryset.count() == 0:
-        messages.error(request, "筛选数据为空")
-        return redirect(url)
+    # summary_line
     date_range = list(queryset.values_list("date", flat=True).order_by('date'))
     start_date, end_date = date_range[0], date_range[-1]
     date_list = make_date_list(start_date, end_date)
@@ -151,6 +71,7 @@ def reward_line(request):
     data_db = data_db.rename(columns={"name": '姓名', "reward__name": '奖惩名称', "date": "日期"})
     data_db["日期"] = data_db["日期"].apply(lambda x: x.strftime('%Y-%m-%d'))
     data = pd.merge(data, data_db, on="日期", how="outer")
+    print(data)
     data["次数"] = data["奖惩名称"]
     data = pd.pivot_table(data, values=["次数"], index=["日期"], columns=["奖惩名称"], aggfunc=np.count_nonzero)
     data = data.fillna(0)
@@ -160,10 +81,58 @@ def reward_line(request):
     line.add_xaxis(data.index.values.tolist())
     for value in second_list:
         line.add_yaxis(value, data["次数"][value], symbol_size=10, is_smooth=True)
-    l = (
+    reward_summary_line = (
         line
     )
-    return HttpResponse(l.render_embed())
+
+    # summary_bar
+    data = pd.DataFrame(queryset.values("", "reward__type"))
+    data['name'] = data['user__last_name'] + data['user__first_name']
+    data = data[['name', 'reward__name']]
+    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
+    data['次数'] = data['姓名']
+    data = pd.pivot_table(data, values=["次数"], index=["奖惩名称"], aggfunc=np.count_nonzero)
+    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="总体"))
+    bar.add_xaxis(data.index.values.tolist())
+    bar.add_yaxis("奖惩类型", data["次数"].values.tolist())
+    reward_summary_bar = (
+        bar
+    )
+
+    # summary_bar
+    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
+    data['name'] = data['user__last_name'] + data['user__first_name']
+    data = data[['name', 'reward__name']]
+    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
+    data['次数'] = data['姓名']
+    data = pd.pivot_table(data, values=["次数"], index=["姓名", "奖惩名称"], aggfunc=np.count_nonzero)
+    first_list, second_list = zip(*data.index.values)
+    first_list, second_list = set(first_list), set(second_list)
+    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="按姓名"))
+    bar.add_xaxis(second_list)
+    for value in first_list:
+        bar.add_yaxis(value, data.loc[value]["次数"].values.tolist())
+    b = (
+        bar
+    )
+
+    #
+    data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
+    data['name'] = data['user__last_name'] + data['user__first_name']
+    data = data[['name', 'reward__name']]
+    data = data.rename(columns={"name": '姓名', "reward__name": '奖惩名称'})
+    data['次数'] = data['姓名']
+    data = pd.pivot_table(data, values=["次数"], index=["姓名", "奖惩名称"], aggfunc=np.count_nonzero)
+    first_list, second_list = zip(*data.index.values)
+    first_list, second_list = set(first_list), set(second_list)
+    bar = Bar(init_opts=opts.InitOpts()).set_global_opts(title_opts=opts.TitleOpts(title="奖惩统计", subtitle="按姓名"))
+    bar.add_xaxis(second_list)
+    for value in first_list:
+        bar.add_yaxis(value, data.loc[value]["次数"].values.tolist())
+    b = (
+        bar
+    )
+    return HttpResponse(reward_summary_bar.render_embed())
 
 
 def workload_summary_export(request):
@@ -188,8 +157,7 @@ def workload_summary_export(request):
     data = pd.pivot_table(data, values=["总分"], index=["员工姓名"], aggfunc=np.sum)
     filename = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment;filename="{}"'.format(
-        "Export pivot by score " + filename + ".xlsx")
+    response['Content-Disposition'] = 'attachment;filename="{}"'.format("Export pivot by score " + filename + ".xlsx")
     data.to_excel(outfile)
     response.write(outfile.getvalue())
     return response
