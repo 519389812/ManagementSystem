@@ -52,10 +52,6 @@ def check_datetime_closed(close_timezone, now_timezone):
     return True if close_timezone <= now_timezone else False
 
 
-def check_datetime_opened(close_timezone, now_timezone):
-    return True if close_timezone > now_timezone else False
-
-
 def translate_words(request, error=''):
     if request.method == "GET":
         translate_dict = json.load(open(translate_path, "r"))
@@ -335,7 +331,7 @@ def supervise_docx(request):
             docx_object = DocxInit.objects.get(id=docx_id)
         except:
             return render(request, "error_docx_missing.html", status=403)
-        if check_datetime_opened(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
+        if not check_datetime_closed(timezone.localtime(docx_object.close_datetime), timezone.localtime(timezone.now())):
             return render(request, "error_docx_opened.html", status=403)
         return render(request, "signature.html", {"docx_id": docx_id, "content_id": "", "signature_key": signature_key})
     else:

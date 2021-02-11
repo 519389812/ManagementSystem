@@ -14,7 +14,6 @@ from django.utils import timezone
 import datetime
 from django.core.mail import send_mail
 from ManagementSystem.settings import EMAIL_FROM
-from ManagementSystem.views import check_datetime_opened
 import random
 from user_agents import parse
 import json
@@ -23,6 +22,10 @@ import uuid
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 # from django.utils import timezone
 from django.http import Http404
+
+
+def check_datetime_opened(close_timezone, now_timezone):
+    return True if close_timezone > now_timezone else False
 
 
 def check_authority(func):
