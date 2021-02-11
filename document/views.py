@@ -11,7 +11,6 @@ import math
 from urllib import parse
 from django.utils import timezone
 from ManagementSystem.settings import TIME_ZONE
-from ManagementSystem.views import check_datetime_opened, check_datetime_closed
 from user.views import check_authority, check_is_touch_capable, check_accessible
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.views.decorators.csrf import csrf_exempt
@@ -47,6 +46,14 @@ def error_docx_opened(request):
 
 def error_docx_missing(request):
     return render(request, "error_docx_missing.html")
+
+
+def check_datetime_closed(close_timezone, now_timezone):
+    return True if close_timezone <= now_timezone else False
+
+
+def check_datetime_opened(close_timezone, now_timezone):
+    return True if close_timezone > now_timezone else False
 
 
 def translate_words(request, error=''):
