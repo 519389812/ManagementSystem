@@ -18,8 +18,8 @@ from django.urls import path, re_path
 from . import views as main_views
 from document import views as document_views
 from user import views as user_views
-from quickcheck import views as quickcheck_views
-# from performance import views as performance_views
+# from quickcheck import views as quickcheck_views
+from performance import views as performance_views
 from django.shortcuts import render
 from ManagementSystem.views import error_404, error_400, error_403, error_500
 
@@ -101,17 +101,15 @@ urlpatterns = [
     re_path('document/download_docx/(.+)/$', document_views.download_docx, name="download_docx"),
 
     # quickcheck
-    path('quickcheck/', quickcheck_views.quickcheck, name="quickcheck"),
-    path('quickcheck/outbound_limit', quickcheck_views.outbound_limit, name="outbound_limit"),
-    path('quickcheck/outbound_limit/singapore', quickcheck_views.outbound_limit_singapore, name="outbound_limit_singapore"),
-    path('quickcheck/outbound_limit/cambodia', quickcheck_views.outbound_limit_cambodia, name="outbound_limit_cambodia"),
-    path('quickcheck/outbound_limit/thailand', quickcheck_views.outbound_limit_thailand, name="outbound_limit_thailand"),
+    # path('quickcheck/', quickcheck_views.quickcheck, name="quickcheck"),
+    # path('quickcheck/outbound_limit', quickcheck_views.outbound_limit, name="outbound_limit"),
+    # path('quickcheck/outbound_limit/singapore', quickcheck_views.outbound_limit_singapore, name="outbound_limit_singapore"),
+    # path('quickcheck/outbound_limit/cambodia', quickcheck_views.outbound_limit_cambodia, name="outbound_limit_cambodia"),
+    # path('quickcheck/outbound_limit/thailand', quickcheck_views.outbound_limit_thailand, name="outbound_limit_thailand"),
 
     # performance
-    # path('performance/', performance_views.performance, name="performance"),
-    # path('performance/reward_bar_summary', performance_views.reward_bar_summary, name="reward_bar_summary"),
-    # path('performance/reward_bar_by_name', performance_views.reward_bar_by_name, name="reward_bar_by_name"),
-    # path('performance/reward_line', performance_views.reward_line, name="reward_line"),
-    # path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
-    # path('performance/workload_summary_export/', performance_views.workload_summary_export, name="workload_summary_export"),
+    path('performance/', performance_views.performance, name="performance"),
+    path('performance/reward_grid', performance_views.reward_grid, name="reward_grid"),
+    path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
+    path('performance/workload_summary_export/', performance_views.workload_summary_export, name="workload_summary_export"),
 ]
