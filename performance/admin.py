@@ -114,6 +114,26 @@ class RuleAdmin(admin.ModelAdmin):
     #     return super(RuleAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
+class LevelTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = return_get_queryset(request, qs)
+        return qs
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        return super(LevelTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_form(self, request, obj=None, **kwargs):
+        help_texts = {
+            'name': '如需要设置专用于“新增工作量”表的程度项，请将名称设置为“工作量”',
+        }
+        kwargs.update({'help_texts': help_texts})
+        return super(LevelTypeAdmin, self).get_form(request, obj, **kwargs)
+
+
 class LevelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'rule')
 

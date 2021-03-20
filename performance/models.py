@@ -45,8 +45,22 @@ class Rule(models.Model):
         return self.get_name_weight()
 
 
+class LevelType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="程度类别名称")
+    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+
+    class Meta:
+        verbose_name = '程度类别'
+        verbose_name_plural = "  程度类别"
+
+    def __str__(self):
+        return self.name
+
+
 class Level(models.Model):
     id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(LevelType, on_delete=models.CASCADE, verbose_name="程度类别")
     name = models.CharField(max_length=100, unique=True, verbose_name="程度名称")
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
@@ -202,9 +216,9 @@ class WorkloadRecord(models.Model):
     user = models.ForeignKey(User, related_name='workload_user', on_delete=models.CASCADE, verbose_name="登记人")
     shift = models.ForeignKey(Shift, on_delete=models.CASCADE, verbose_name="班次")
     position = models.ForeignKey(Position, on_delete=models.CASCADE, verbose_name="岗位")
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, verbose_name="程度")
     start_datetime = models.DateTimeField(verbose_name="开始时间")
     end_datetime = models.DateTimeField(verbose_name="结束时间")
-    working_time = models.FloatField(null=True, blank=True, verbose_name="工作时长")
     assigned_team = models.ForeignKey(Team, related_name='assigned_team', on_delete=models.CASCADE, verbose_name="指派")
     remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")

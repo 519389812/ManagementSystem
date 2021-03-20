@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
-from performance.models import Position, RewardRecord, WorkloadRecord
+from performance.models import Position, RewardRecord, WorkloadRecord, Level, Shift
 from team.models import Team
 from user.views import check_authority
 from ManagementSystem.views import parse_url_param
@@ -163,41 +163,6 @@ def workload_summary_export(request):
     return response
 
 
-@check_authority
-def get_addinfo_list_data(request, addinfos_all_list):
-    paginator = Paginator(addinfos_all_list, settings.EACH_PAGE_ADDINFOS_NUMBER)
-    page_num = request.GET.get('page', 1)  # 获取url的页面参数（GET请求）
-    page_of_addinfos = paginator.get_page(page_num)
-    currentr_page_num = page_of_addinfos.number  # 获取当前页码
-    # 获取当前页码前后各2页的页码范围
-    page_range = list(range(max(currentr_page_num - 2, 1), currentr_page_num)) + \
-                 list(range(currentr_page_num, min(currentr_page_num + 2, paginator.num_pages) + 1))
-    # 加上省略页码标记
-    if page_range[0] - 1 >= 2:
-        page_range.insert(0, '...')
-    if paginator.num_pages - page_range[-1] >= 2:
-        page_range.append('...')
-    # 加上首页和尾页
-    if page_range[0] != 1:
-        page_range.insert(0, 1)
-    if page_range[-1] != paginator.num_pages:
-        page_range.append(paginator.num_pages)
-    # 获取日期归档对应的登记数量
-    addinfo_dates = addinfo.objects.dates('created_time', 'month', order="DESC")
-    addinfo_dates_dict = {}
-    for addinfo_date in addinfo_dates:
-        addinfo_count = addinfo.objects.filter(created_time__year=addinfo_date.year,
-                                               created_time__month=addinfo_date.month).count()
-        addinfo_dates_dict[addinfo_date] = addinfo_count
-
-    context = {}
-    context['addinfos'] = page_of_addinfos.object_list
-    context['page_of_addinfos'] = page_of_addinfos
-    context['page_range'] = page_range
-    context['addinfo_dates'] = addinfo_dates_dict
-    return context
-
-
 def performance(request):
     return render(request, "performance.html")
 
@@ -205,43 +170,23 @@ def performance(request):
 @check_authority
 def add_workload(request):
     if request.method == "POST":
+        shift = request.POST.get("shift", "")
         position = request.POST.get("position", "")
+        level = request.POST.get("level", "")
+        start_datetime = request.POST.get("start_datetime", "")
+        end_datetime = request.POST.get("end_datetime", "")
+        assigned_team = request.POST.get("assigned_team", "")
+        remark = request.POST.get("remark", "")
+        if all([shift, position, level, start_datetime, end_datetime, assigned_team]):
+            return render(request, "error_500.html", status=500)
+        shift = Shift.objects.get(name=shift)
         position = Position.objects.get(name=position)
-        worktime = request.POST['worktime']
-        department = request.POST.get('department', "")
-        department = Team.objects.get(name=department)
-        created_time = request.POST['created_time']
-        remark = request.POST['remark']
-        AddWorkload.objects.create(user=request.user, position=position, worktime=worktime, department=department, created_time=created_time, remark=remark)
+        level = Level.objects.get(name=level)
+        assigned_team = Team.objects.get(name=assigned_team)
+        WorkloadRecord.objects.create(user=request.user, )
         return redirect(reverse('add_workload'))
     else:
         position_list = list(Position.objects.all().values("id", "name"))
         team_list = list(Team.objects.all().values("id", "name", "parent__name"))
-        return render(request, "add_workload.html", {"position_list": position_list, "team_list": team_list})
-
-
-@check_authority
-def add_succeed(request):
-    return render(request, "add_succeed.html")
-
-
-@check_authority
-def approval(request):
-    addinfos_list_obj = list(AddWorkload.objects.all())
-    return render(request, "addworkload_approval.html", {'addinfos_list':addinfos_list_obj})
-
-
-@check_authority
-def addinfo(request):
-    addinfos_list_obj = list(AddWorkload.objects.all())
-    return render(request, 'addworkload_info.html', {'addinfo_list': addinfos_list_obj})
-
-
-@check_authority
-def addinfos_date(request, year, month):
-    addinfos_all_list = addinfo.objects.filter(created_time__year=year, created_time__month=month)
-    context = get_addinfo_list_data(request, addinfos_all_list)
-    context['addinfos_date'] = '%s年%s月' % (year, month)
-    return render(request, 'addinfos_date.html', context)
-
-
+        level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
+        return render(request, ".html", {"position_list": position_list, "team_list": team_list, 'level_list': level_list})
