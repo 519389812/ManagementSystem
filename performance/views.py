@@ -12,6 +12,8 @@ import numpy as np
 import datetime
 from django.contrib import messages
 from io import BytesIO
+from django.utils.datastructures import MultiValueDictKeyError
+
 
 from jinja2 import Environment, FileSystemLoader
 from pyecharts.globals import CurrentConfig
@@ -205,3 +207,4 @@ def add_workload(request):
     else:
         return render(request, "add_workload.html", {"shift_list": shift_list, "position_list": position_list,
                                                      "team_list": team_list, 'level_list': level_list})
+
