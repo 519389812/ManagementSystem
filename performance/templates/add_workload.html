@@ -37,7 +37,13 @@
                     <div class="controls">
                         <label>班次:</label>
                         <select class="form-control" id="shift" name="shift">
-                            <option>Default select</option>
+                            {% for shift in shift_list %}
+                                {% if shift == shift_name %}
+                                    <option selected>shift</option>
+                                {% else %}
+                                    <option>shift</option>
+                                {% endif %}
+                            {% endfor %}
                         </select>
                         <p class="help-block" id="shift_validate"></p>
                     </div>
@@ -46,7 +52,13 @@
                     <div class="controls">
                         <label>岗位:</label>
                         <select class="form-control" id="position" name="position">
-                            <option>Default select</option>
+                            {% for position in position_list %}
+                                {% if position == position_name %}
+                                    <option selected>position</option>
+                                {% else %}
+                                    <option>position</option>
+                                {% endif %}
+                            {% endfor %}
                         </select>
                         <p class="help-block" id="position_validate"></p>
                     </div>
@@ -55,7 +67,13 @@
                     <div class="controls">
                         <label>岗位难度:</label>
                         <select class="form-control" id="level" name="level">
-                            <option>Default select</option>
+                            {% for level in level_list %}
+                                {% if level == level_name %}
+                                    <option selected>level</option>
+                                {% else %}
+                                    <option>level</option>
+                                {% endif %}
+                            {% endfor %}
                         </select>
                         <p class="help-block" id="level_validate"></p>
                     </div>
@@ -64,7 +82,7 @@
                     <div class="controls">
                         <label>开始时间:</label>
                         <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" placeholder="请选择开始时间"
-                               required data-validation-required-message="Please enter start datetime.">
+                               required data-validation-required-message="Please enter start datetime." value="{{ start_datetime }}">
                         <p class="help-block" id="start_datetime_validate"></p>
                     </div>
                 </div>
@@ -72,7 +90,7 @@
                     <div class="controls">
                         <label>结束时间:</label>
                         <input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime" placeholder="请选择结束时间"
-                               required data-validation-required-message="Please enter end datetime.">
+                               required data-validation-required-message="Please enter end datetime." value="{{ end_datetime }}">
                         <p class="help-block" id="end_datetime_validate"></p>
                     </div>
                 </div>
@@ -80,7 +98,13 @@
                     <div class="controls">
                         <label>审核室:</label>
                         <select class="form-control" id="assigned_team" name="assigned_team">
-                            <option>Default select</option>
+                            {% for team in team_list %}
+                                {% if team == assigned_team_name %}
+                                    <option selected>team</option>
+                                {% else %}
+                                    <option>team</option>
+                                {% endif %}
+                            {% endfor %}
                         </select>
                         <p class="help-block" id="assigned_team_validate"></p>
                     </div>
@@ -93,11 +117,7 @@
                         <p class="help-block" id="remark_validate"></p>
                     </div>
                 </div>
-                {% if error == "" %}
-                    <div></div>
-                {% else %}
-                    <div>{{ error }}</div>
-                {% endif %}
+                <div>{{ msg }}</div>
                 <!-- For success/fail messages -->
                 <button type="submit" class="btn btn-primary" id="submit">提交</button>
             </form>

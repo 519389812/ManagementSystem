@@ -31,8 +31,7 @@ def check_datetime_opened(close_timezone, now_timezone):
 def check_authority(func):
     def wrapper(*args, **kwargs):
         if not args[0].user.is_authenticated:
-            args[0].session["path"] = args[0].path
-            return redirect(reverse("login"))
+            return redirect("/login/?next=%s" % args[0].path)
         return func(*args, **kwargs)
     return wrapper
 
@@ -80,11 +79,11 @@ def user_setting(request):
     return render(request, "user_setting.html")
 
 
-def register(request, error=''):
+def register(request):
     if request.method == "POST":
         if not check_post_valudate(request, check_username_validate, check_password_validate, check_lastname_validate,
                                        check_firstname_validate):
-            return redirect(reverse("register", args=["存在未按规定要求的字段!"]))
+            return render(request, "register.html", {"msg": "存在未按规定要求的字段！"})
         username = request.POST.get("username")
         password = request.POST.get("password")
         last_name = request.POST.get("lastname")
@@ -92,36 +91,26 @@ def register(request, error=''):
         try:
             User.objects.create(username=username, password=make_password(password), last_name=last_name,
                                 first_name=first_name, is_active=False)
-            return redirect(reverse("login", args=["注册成功，请等待管理员审核！"]))
+            return render(request, "register.html", {"msg": "注册成功，请等待管理员审核！"})
         except:
-            return redirect(reverse("register", args=["注册失败，出现未知错误，请联系管理员"]))
+            return render(request, "register.html", {"msg": "注册失败，出现未知错误，请联系管理员！"})
     else:
         if request.user.is_authenticated:
             return redirect('/')
         else:
-            return render(request, "register.html", {"error": error})
+            return render(request, "register.html")
 
 
-def login(request, error=""):
+def login(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(username=username, password=password)
         if user:
-            if request.META.get('HTTP_X_FORWARDED_FOR'):
-                ip = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0]
-            else:
-                ip = request.META.get('REMOTE_ADDR').split(',')[0]
-            user_agent = parse(request.META.get('HTTP_USER_AGENT'))
-            if user_agent.is_touch_capable is True:
-                if User.objects.filter(ip_address=ip).exclude(username=username).count() > 0:
-                    return redirect(reverse("login", args=["当前IP(%s)地址与他人IP地址相同，您是否使用了他人设备登录？若是，请使用自己设备登录；如果系统判断失误，请联系管理员！" % ip]))
-                user.ip_address = ip
-                user.save()
             login_admin(request, user)
-            path = request.session.get("path", "")
-            if path != "":
-                return redirect(path)
+            next_url = request.GET.get('next', '')
+            if next_url != "":
+                return redirect(next_url)
             else:
                 return redirect('/')
         else:
@@ -129,18 +118,19 @@ def login(request, error=""):
                 user = User.objects.get(username=username)
                 if check_password(password, user.password):
                     if user.is_active:
-                        return redirect(reverse("login", args=["登录出错，请管理员!"]))
+                        return render(request, "login.html", {"msg": "登录出错，请管理员！"})
                     else:
-                        return redirect(reverse("login", args=["用户未认证，请联系管理员审核!"]))
+                        return render(request, "login.html", {"msg": "用户未认证，请联系管理员审核！"})
                 else:
-                    return redirect(reverse("login", args=["用户名或密码错误!"]))
+                    return render(request, "login.html", {"msg": "用户名或密码错误！"})
             except:
-                return redirect(reverse("login", args=["用户名或密码错误!"]))
+                return render(request, "login.html", {"msg": "用户名或密码错误！"})
     else:
         if request.user.is_authenticated:
             return redirect('/')
         else:
-            return render(request, "login.html", {"error": error})
+            next_url = request.GET.get('next', '')
+            return render(request, "login.html", {'next': next_url})
 
 
 def random_str(str_length=8):

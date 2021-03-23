@@ -169,24 +169,39 @@ def performance(request):
 
 @check_authority
 def add_workload(request):
+    shift_list = list(Shift.objects.all().values("id", "name"))
+    position_list = list(Position.objects.all().values("id", "name"))
+    level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
+    if not request.user.is_superuser:
+        team_id = str(request.user.team.id)
+        team_list = list(Team.objects.filter(related_parent__in=team_id).values("id", "name", "parent__name"))
+    else:
+        team_list = list(Team.objects.all().values("id", "name", "parent__name"))
     if request.method == "POST":
-        shift = request.POST.get("shift", "")
-        position = request.POST.get("position", "")
-        level = request.POST.get("level", "")
+        shift_name = request.POST.get("shift", "")
+        position_name = request.POST.get("position", "")
+        level_name = request.POST.get("level", "")
         start_datetime = request.POST.get("start_datetime", "")
         end_datetime = request.POST.get("end_datetime", "")
-        assigned_team = request.POST.get("assigned_team", "")
+        assigned_team_name = request.POST.get("assigned_team", "")
         remark = request.POST.get("remark", "")
-        if all([shift, position, level, start_datetime, end_datetime, assigned_team]):
+        if all([shift_name, position_name, level_name, start_datetime, end_datetime, assigned_team_name]):
             return render(request, "error_500.html", status=500)
-        shift = Shift.objects.get(name=shift)
-        position = Position.objects.get(name=position)
-        level = Level.objects.get(name=level)
-        assigned_team = Team.objects.get(name=assigned_team)
-        WorkloadRecord.objects.create(user=request.user, )
-        return redirect(reverse('add_workload'))
+        try:
+            shift = Shift.objects.get(name=shift_name)
+            position = Position.objects.get(name=position_name)
+            level = Level.objects.get(name=level_name)
+            assigned_team = Team.objects.get(name=assigned_team_name)
+            WorkloadRecord.objects.create(user=request.user, shift=shift, position=position, level=level,
+                                          start_datetime=start_datetime, end_datetime=end_datetime,
+                                          assigned_team=assigned_team, remark=remark)
+            return render(request, "add_workload.html",
+                          {"shift_list": shift_list, "position_list": position_list, "team_list": team_list,
+                           "level_list": level_list, "start_datetime": start_datetime, "end_datetime": end_datetime,
+                           "shift_name": shift_name, "position_name": position_name, "level_name": level_name,
+                           "assigned_team_name": assigned_team_name})
+        except:
+            return render(request, "error_500.html", status=500)
     else:
-        position_list = list(Position.objects.all().values("id", "name"))
-        team_list = list(Team.objects.all().values("id", "name", "parent__name"))
-        level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
-        return render(request, ".html", {"position_list": position_list, "team_list": team_list, 'level_list': level_list})
+        return render(request, "add_workload.html", {"shift_list": shift_list, "position_list": position_list,
+                                                     "team_list": team_list, 'level_list': level_list})

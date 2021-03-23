@@ -49,11 +49,7 @@
                         <p class="help-block" id="password_validate"></p>
                     </div>
                 </div>
-                {% if error == "" %}
-                    <div></div>
-                {% else %}
-                    <div>{{ error }}</div>
-                {% endif %}
+                <div>{{ msg }}</div>
                 <!-- For success/fail messages -->
                 <button type="submit" class="btn btn-primary" id="submit">登录</button>
             </form>
