@@ -26,36 +26,69 @@
         <li class="breadcrumb-item active">查询</li>
     </ol>
 
-    <table class="table">
+    <table class="table table-hover">
+        {% request.user.get_full_name %}的工作量登记记录
         <thead>
         <tr>
-            <th scope="col">#</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Handle</th>
+            <th scope="col">记录编号</th>
+            <th scope="col">班次</th>
+            <th scope="col">岗位</th>
+            <th scope="col">程度</th>
+            <th scope="col">开始时间</th>
+            <th scope="col">结束时间</th>
+            <th scope="col">指派</th>
+            <th scope="col">审核状态</th>
+            <th scope="col">审核人</th>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <th scope="row">1</th>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td>@mdo</td>
-        </tr>
-        <tr>
-            <th scope="row">2</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>@fat</td>
-        </tr>
-        <tr>
-            <th scope="row">3</th>
-            <td>Larry</td>
-            <td>the Bird</td>
-            <td>@twitter</td>
-        </tr>
+            {% for workload in workload_list %}
+                <tr>
+                    <th scope="row">workload.id</th>
+                    <td>workload.shift.name</td>
+                    <td>workload.position.name</td>
+                    <td>workload.level.name</td>
+                    <td>workload.start_datetime</td>
+                    <td>workload.end_datetime</td>
+                    <td>workload.assigned_team</td>
+                    {% if workload.verified == "审核通过" %}
+                        <td class="table-success">workload.verified</td>
+                    {% elif workload.verified == "审核不通过" %}
+                        <td class="table-danger">>workload.verified</td>
+                    {% else %}
+                        <td>workload.verified</td>
+                    {% endif %}
+                    <td>workload.verified_user</td>
+                </tr>
+            {% endfor %}
         </tbody>
+        共有{{ total_workload }}条记录
     </table>
+
+    <!-- Pagination -->
+    <ul class="pagination justify-content-center">
+        <li class="page-item">
+            <a class="page-link" href="#" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">Previous</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="#">1</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="#">2</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="#">3</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="#" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+                <span class="sr-only">Next</span>
+            </a>
+        </li>
+    </ul>
 
 </div>
 <!-- /.container -->

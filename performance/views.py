@@ -13,6 +13,7 @@ import datetime
 from django.contrib import messages
 from io import BytesIO
 from django.utils.datastructures import MultiValueDictKeyError
+from django.core.paginator import Paginator
 
 
 from jinja2 import Environment, FileSystemLoader
@@ -208,3 +209,15 @@ def add_workload(request):
         return render(request, "add_workload.html", {"shift_list": shift_list, "position_list": position_list,
                                                      "team_list": team_list, 'level_list': level_list})
 
+
+@check_authority
+def view_workload(request):
+    if request.method == "GET":
+        page = request.GET.get("page", 1)
+        create_datetime = timezone.localtime(timezone.now()) - timezone.timedelta(days=41)
+        workload_list = WorkloadRecord.objects.filter(user=request.user, created_datetime__gte=create_datetime)
+        paginator = Paginator(workload_list, 20)
+        page_workload_list = paginator.get_page(page)
+        render(request, "view_workload.html", {"page_workload_list": page_workload_list, "total_workload": paginator.count, "total_page": paginator.num_pages, "page": page})
+    else:
+        return render(request, "error_500.html", status=500)

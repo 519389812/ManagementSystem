@@ -212,6 +212,12 @@ class RewardSummary(RewardRecord):
 
 
 class WorkloadRecord(models.Model):
+    verified_choices = (
+        ('审核通过', '审核通过'),
+        ('审核中', '审核中'),
+        ('审核不通过', '审核不通过'),
+    )
+
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, related_name='workload_user', on_delete=models.CASCADE, verbose_name="登记人")
     shift = models.ForeignKey(Shift, on_delete=models.CASCADE, verbose_name="班次")
@@ -222,13 +228,14 @@ class WorkloadRecord(models.Model):
     assigned_team = models.ForeignKey(Team, related_name='assigned_team', on_delete=models.CASCADE, verbose_name="指派")
     remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
-    verified = models.BooleanField(default=False, verbose_name="审核状态")
+    verified = models.BooleanField(default=False, choices=verified_choices, verbose_name="审核状态")
     verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
     verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
 
     class Meta:
         verbose_name = '工作量记录'
         verbose_name_plural = "              工作量记录"
+        ordering = ["-created_datetime"]
 
     def __str__(self):
         return str(self.id)
