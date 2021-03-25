@@ -111,5 +111,6 @@ urlpatterns = [
     path('performance/', performance_views.performance, name="performance"),
     path('performance/reward_grid', performance_views.reward_grid, name="reward_grid"),
     path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
+    re_path('performance/view_workload/(.*)/$', performance_views.view_workload, name="view_workload"),
     path('performance/workload_summary_export/', performance_views.workload_summary_export, name="workload_summary_export"),
 ]

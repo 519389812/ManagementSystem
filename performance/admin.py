@@ -9,7 +9,6 @@ from django.apps import apps
 from django.utils import timezone
 import re
 from django.contrib import messages
-import datetime
 
 
 def return_get_queryset(request, qs):
@@ -396,9 +395,9 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 
 
 class WorkloadRecordAdmin(admin.ModelAdmin):
-    list_display = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified')
+    list_display = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified')
     list_editable = ('verified',)
-    fields = ('user', 'shift', 'position', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
+    fields = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
     readonly_fields = ('created_datetime', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified_user', 'verified_datetime')
     list_filter = (
         ('start_datetime', DateTimeRangeFilter), 'user__team__name',

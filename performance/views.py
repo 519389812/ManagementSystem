@@ -191,13 +191,16 @@ def add_workload(request):
         if all([shift_name, position_name, level_name, start_datetime, end_datetime, assigned_team_name]):
             return render(request, "error_500.html", status=500)
         try:
+            start_datetime = timezone.datetime.strptime(start_datetime, "%Y-%m-%d %H:%M:%S")
+            end_datetime = timezone.datetime.strptime(end_datetime, "%Y-%m-%d %H:%M:%S")
+            working_time = round((end_datetime - start_datetime).seconds / 60 / 60, 2)
             shift = Shift.objects.get(name=shift_name)
             position = Position.objects.get(name=position_name)
             level = Level.objects.get(name=level_name)
             assigned_team = Team.objects.get(name=assigned_team_name)
             WorkloadRecord.objects.create(user=request.user, shift=shift, position=position, level=level,
                                           start_datetime=start_datetime, end_datetime=end_datetime,
-                                          assigned_team=assigned_team, remark=remark)
+                                          working_time=working_time, assigned_team=assigned_team, remark=remark)
             return render(request, "add_workload.html",
                           {"shift_list": shift_list, "position_list": position_list, "team_list": team_list,
                            "level_list": level_list, "start_datetime": start_datetime, "end_datetime": end_datetime,
@@ -213,11 +216,13 @@ def add_workload(request):
 @check_authority
 def view_workload(request):
     if request.method == "GET":
-        page = request.GET.get("page", 1)
+        page = request.GET.get("page", '1')
         create_datetime = timezone.localtime(timezone.now()) - timezone.timedelta(days=41)
         workload_list = WorkloadRecord.objects.filter(user=request.user, created_datetime__gte=create_datetime)
         paginator = Paginator(workload_list, 20)
-        page_workload_list = paginator.get_page(page)
-        render(request, "view_workload.html", {"page_workload_list": page_workload_list, "total_workload": paginator.count, "total_page": paginator.num_pages, "page": page})
+        page_workload_list = paginator.get_page(int(page))
+        render(request, "view_workload.html", {"page_workload_list": page_workload_list,
+                                               "total_workload": paginator.count, "total_page": paginator.num_pages,
+                                               "page": page})
     else:
         return render(request, "error_500.html", status=500)
