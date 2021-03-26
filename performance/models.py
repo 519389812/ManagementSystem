@@ -126,7 +126,6 @@ class Skill(models.Model):
     score = models.FloatField(verbose_name="技能基础分数")
     workload = models.FloatField(verbose_name="技能基础工作量")
     bonus = models.FloatField(verbose_name="技能基础奖金")
-    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
 
     class Meta:
@@ -157,7 +156,6 @@ class Reward(models.Model):
     score = models.FloatField(verbose_name="奖惩基础分数")
     workload = models.FloatField(verbose_name="奖惩基础工作量")
     bonus = models.FloatField(verbose_name="奖惩基础奖金")
-    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
     team = models.ForeignKey(Team, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
 
     class Meta:
@@ -198,6 +196,7 @@ class RewardRecord(models.Model):
     content = models.TextField(max_length=1000, blank=True, verbose_name="详细情况")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     created_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="登记人")
+    team = models.ForeignKey(Team, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
 
     class Meta:
         verbose_name = '奖惩记录'
@@ -234,6 +233,7 @@ class WorkloadRecord(models.Model):
     verified = models.BooleanField(default=False, verbose_name="审核状态")
     verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
     verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
+    team = models.ForeignKey(Team, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
 
     class Meta:
         verbose_name = '工作量记录'

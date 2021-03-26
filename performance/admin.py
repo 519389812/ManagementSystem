@@ -195,7 +195,7 @@ class SkillTypeAdmin(admin.ModelAdmin):
 
 
 class SkillAdmin(admin.ModelAdmin):
-    list_display = ('type', 'name', 'score', 'workload', 'bonus', 'rule')
+    list_display = ('type', 'name', 'score', 'workload', 'bonus')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -204,7 +204,6 @@ class SkillAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'skill')
         return super(SkillAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -225,7 +224,7 @@ class RewardTypeAdmin(admin.ModelAdmin):
 
 
 class RewardAdmin(admin.ModelAdmin):
-    list_display = ('type', 'name', 'score', 'workload', 'bonus', 'rule')
+    list_display = ('type', 'name', 'score', 'workload', 'bonus')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -234,7 +233,6 @@ class RewardAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'reward')
         return super(RewardAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 

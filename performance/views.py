@@ -200,9 +200,8 @@ def add_workload(request):
                                           working_time=working_time, assigned_team=assigned_team, remark=remark)
             return render(request, "add_workload.html",
                           {"shift_list": shift_list, "position_list": position_list, "team_list": team_list,
-                           "level_list": level_list, "start_datetime": start_datetime, "end_datetime": end_datetime,
-                           "shift_name": shift_name, "position_name": position_name, "level_name": level_name,
-                           "assigned_team_name": assigned_team_name})
+                           "level_list": level_list, "shift_name": shift_name, "position_name": position_name,
+                           "level_name": level_name, "assigned_team_name": assigned_team_name})
         except:
             return render(request, "error_500.html", status=500)
     else:
