@@ -51,15 +51,16 @@ def return_get_model_perms(self, request):
 
 
 class RuleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'effect', 'date_condition', 'condition', 'score', 'workload', 'bonus')
+    list_display = ('name', 'effect', 'date_condition', 'condition', 'score', 'workload', 'bonus', 'man_hours')
 
     def get_form(self, request, obj=None, **kwargs):
         help_texts = {
-            'date_condition': '如需要规定90天内重复某个差错，则时间条件设为：“<=90“',
-            'condition': '如需要规定数量2次以上，则条件设为：“>=2“',
+            'date_condition': '如需要规定90天内重复某个差错，则时间条件设为：“<=90“，无条件则为空',
+            'condition': '如需要规定数量2次以上，则条件设为：“>=2“，无条件则为空',
             'score': '如需设置双倍分数奖罚，则设为：“*2“',
             'workload': '如需设置扣20工作量，则设为：“-20“',
             'bonus': '如需设置奖金减半，则设为：“/2“',
+            'man_hours': '如需设置工时加成30%，则设为：“*0.3，特别注意：工时仅作用于工作量表“',
         }
         kwargs.update({'help_texts': help_texts})
         return super(RuleAdmin, self).get_form(request, obj, **kwargs)
@@ -164,7 +165,7 @@ class PositionTypeAdmin(admin.ModelAdmin):
 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'score', 'workload', 'bonus')
+    list_display = ('name', 'score', 'workload', 'bonus', 'rule')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -173,6 +174,7 @@ class PositionAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'position')
         return super(PositionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -237,7 +239,7 @@ class RewardAdmin(admin.ModelAdmin):
 
 
 class ShiftAdmin(admin.ModelAdmin):
-    list_display = ('name', 'score', 'workload', 'bonus')
+    list_display = ('name', 'score', 'workload', 'bonus', 'shift')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -246,6 +248,7 @@ class ShiftAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'shift')
         return super(ShiftAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -395,10 +398,10 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 
 
 class WorkloadRecordAdmin(admin.ModelAdmin):
-    list_display = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified')
+    list_display = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'get_level_rule', 'verified')
     list_editable = ('verified',)
-    fields = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
-    readonly_fields = ('created_datetime', 'working_time', 'get_initial_score', 'get_initial_workload', 'get_initial_bonus', 'verified_user', 'verified_datetime')
+    fields = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'get_level_rule', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
+    readonly_fields = ('created_datetime', 'working_time', 'get_initial_workload', 'get_level_rule', 'verified_user', 'verified_datetime')
     list_filter = (
         ('start_datetime', DateTimeRangeFilter), 'user__team__name',
     )
@@ -410,32 +413,86 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
         kwargs.update({'help_texts': help_texts})
         return super(WorkloadRecordAdmin, self).get_form(request, obj, **kwargs)
 
-    def get_initial_score(self, obj):
-        return (obj.shift.score + obj.position.score) * obj.working_time
-    get_initial_score.short_description = "分值"
-
     def get_initial_workload(self, obj):
-        return (obj.shift.workload + obj.position.workload) * obj.working_time
-    get_initial_workload.short_description = "工作量"
+        return '分数: %s, 工作量: %s, 奖金: %s, 计算工时: %s' % (
+            obj.shift.score + obj.position.score, obj.shift.workload + obj.position.workload,
+            obj.shift.bonus + obj.position.bonus, "是" if obj.man_hours else "否")
+    get_initial_workload.short_description = "基础分值"
 
-    def get_initial_bonus(self, obj):
-        return obj.shift.bonus + obj.position.bonus
-    get_initial_bonus.short_description = "奖金"
+    def get_level_rule(self, obj):
+        return obj.level.rule if obj.level.rule else "无"
+    get_level_rule.short_description = "程度规则"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
 
+    # def get_reference(self, obj):
+    #     return ' '.join([i.name for i in obj.reference.all()])
+    # get_reference.short_description = "影响"
+
+    def get_weight_column(self, obj, model_name, column_name):
+        return_column = eval('obj.%s.%s' % model_name, column_name)
+        if eval('obj.%s.rule' % model_name):
+            if eval('obj.%s.rule.date_condition' % model_name):
+                end_date = timezone.localtime(obj.start_datetime)
+                date_delta = int(re.findall(r'\d+', eval('obj.%s.rule.date_condition' % model_name))[0])
+                start_date = end_date - timezone.timedelta(date_delta)
+                count = WorkloadRecord.objects.filter(user=obj.user, start_datetime__gte=start_date, end_datetime__lte=end_date).count()
+            else:
+                count = WorkloadRecord.objects.filter(user=obj.user).count()
+            if eval('obj.%s.rule.condition' % model_name):
+                match = eval('count obj.%s.rule.condition' % model_name)
+                if match:
+                    string = 'obj.%s.rule.%s' % model_name, column_name
+                    return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+            else:
+                if count > 0:
+                    string = 'obj.%s.rule.%s' % model_name, column_name
+                    return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+        if obj.level.rule:
+            string = 'obj.level.rule.%s' % column_name
+            return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+        return return_column
+
+    def get_weight_score(self, obj):
+        return self.get_weight_column(obj, 'shift', 'score') + self.get_weight_column(obj, 'position', 'score')
+    get_weight_score.short_description = "分数"
+
+    def get_weight_workload(self, obj):
+        return self.get_weight_column(obj, 'shift', 'workload') + self.get_weight_column(obj, 'position', 'workload')
+    get_weight_score.short_description = "工作量"
+
+    def get_weight_bonus(self, obj):
+        return self.get_weight_column(obj, 'shift', 'bonus') + self.get_weight_column(obj, 'position', 'bonus')
+    get_weight_score.short_description = "奖金"
+
+    # def formfield_for_manytomany(self, db_field, request, **kwargs):
+    #     if not request.user.is_superuser:
+    #         try:
+    #             team_id = request.user.team.id
+    #             if db_field.name == 'reference':
+    #                 kwargs["queryset"] = Reference.objects.filter(team__related_parent__iregex=r'\D%s\D' % str(team_id))
+    #         except:
+    #             pass
+    #     return super(RewardRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+
     def save_model(self, request, obj, form, change):
         if form.is_valid():
-            working_time = round((timezone.localtime(obj.end_datetime) - timezone.localtime(obj.start_datetime)).total_seconds() / 3600, 2)
+            working_time = round(
+                (timezone.localtime(obj.end_datetime) - timezone.localtime(obj.start_datetime)).total_seconds() / 3600,
+                2)
             if working_time > 24:
                 messages.error(request, "保存失败！工作时长超过最大限制24小时！")
                 messages.set_level(request, messages.ERROR)
                 return
             if not change:
+                obj.created_user = request.user
                 super().save_model(request, obj, form, change)
+            obj.score = self.get_weight_column(obj, 'shift', 'score') + self.get_weight_column(obj, 'position', 'score')
+            obj.workload = self.get_weight_column(obj, 'shift', 'workload') + self.get_weight_column(obj, 'position', 'workload')
+            obj.bonus = self.get_weight_column(obj, 'shift', 'bonus') + self.get_weight_column(obj, 'position', 'bonus')
             obj.working_time = working_time
             verified_before = WorkloadRecord.objects.get(id=obj.id).verified
             verified_after = form.cleaned_data["verified"]

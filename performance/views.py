@@ -74,7 +74,6 @@ def reward_grid(request):
     data_db = data_db.rename(columns={"name": '姓名', "reward__name": '奖惩名称', "date": "日期"})
     data_db["日期"] = data_db["日期"].apply(lambda x: x.strftime('%Y-%m-%d'))
     data = pd.merge(data, data_db, on="日期", how="outer")
-    print(data)
     data["次数"] = data["奖惩名称"]
     data = pd.pivot_table(data, values=["次数"], index=["日期"], columns=["奖惩名称"], aggfunc=np.count_nonzero)
     data = data.fillna(0)
@@ -115,7 +114,7 @@ def reward_grid(request):
     bar.add_xaxis(second_list)
     for value in first_list:
         bar.add_yaxis(value, data.loc[value]["次数"].values.tolist())
-    b = (
+    reward_summary_by_name_bar = (
         bar
     )
 
@@ -147,8 +146,6 @@ def workload_summary_export(request):
     if queryset.count() == 0:
         messages.error(request, "筛选数据为空")
         return redirect(url)
-    print(queryset)
-    return
     outfile = BytesIO()
     data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
     data = data.rename(columns={'id': '序号', 'employee_name_id': '员工姓名', 'position_name_id': '岗位',
