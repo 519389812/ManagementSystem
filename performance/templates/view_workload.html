@@ -70,7 +70,7 @@
     <!-- Pagination -->
     <ul class="pagination justify-content-center">
         <li class="page-item">
-            <a class="page-link" href="{% url 'view_workload' '1' %}" aria-label="Previous">
+            <a class="page-link" href="{% url 'view_workload' %}?page={{ page }}" aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
                 <span class="sr-only">首页</span>
             </a>
@@ -79,9 +79,9 @@
             {% for _ in range %}
                 <li class="page-item">
                     {% if page == forloop.counter %}
-                        <a class="page-link" href="{% url 'view_workload' page %}" aria-disabled="true">{{ forloop.counter }}</a>
+                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page }}" aria-disabled="true">{{ forloop.counter }}</a>
                     {% else %}
-                        <a class="page-link" href="{% url 'view_workload' page %}">{{ forloop.counter }}</a>
+                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page }}">{{ forloop.counter }}</a>
                     {% endif %}
                 </li>
             {% endfor %}

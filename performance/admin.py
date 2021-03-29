@@ -237,7 +237,7 @@ class RewardAdmin(admin.ModelAdmin):
 
 
 class ShiftAdmin(admin.ModelAdmin):
-    list_display = ('name', 'score', 'workload', 'bonus', 'shift')
+    list_display = ('name', 'score', 'workload', 'bonus', 'rule')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
