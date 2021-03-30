@@ -1,5 +1,5 @@
 from django.contrib import admin
-from performance.models import Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, Shift, RewardRecord, RewardSummary, WorkloadRecord, WorkloadSummary
+from performance.models import LevelType, Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, Shift, RewardRecord, RewardSummary, WorkloadRecord, WorkloadSummary
 from team.models import Team
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
@@ -32,6 +32,21 @@ def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, ob
     return kwargs
 
 
+def return_formfield_for_manytomany(self, request, db_field, kwargs, db_field_name, obj):
+    if not request.user.is_superuser:
+        try:
+            if db_field.name == db_field_name:
+                team_id = request.user.team.id
+                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id))
+                kwargs['widget'] = widgets.FilteredSelectMultiple(
+                    db_field.verbose_name,
+                    db_field.name in self.filter_vertical
+                )
+        except:
+            pass
+    return kwargs
+
+
 def return_formfield_for_foreignkey_rule(request, db_field, kwargs, db_field_name, obj, model_name):
     if db_field.name == db_field_name:
         kwargs["queryset"] = obj.objects.filter(effect=model_name)
@@ -52,6 +67,7 @@ def return_get_model_perms(self, request):
 
 class RuleAdmin(admin.ModelAdmin):
     list_display = ('name', 'effect', 'date_condition', 'condition', 'score', 'workload', 'bonus', 'man_hours')
+    filter_horizontal = ('team',)
 
     def get_form(self, request, obj=None, **kwargs):
         help_texts = {
@@ -70,9 +86,13 @@ class RuleAdmin(admin.ModelAdmin):
         qs = return_get_queryset(request, qs)
         return qs
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        return super(RuleAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+    #     return super(RuleAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(RuleAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
         if form.is_valid():
@@ -90,41 +110,22 @@ class RuleAdmin(admin.ModelAdmin):
             super().save_model(request, obj, form, change)
 
 
-    # def formfield_for_manytomany(self, db_field, request, **kwargs):
-    #     """
-    #     Get a form Field for a ManyToManyField.
-    #     """
-    #     # db_field.name 本模型下的字段名称
-    #     if db_field.name == "condition":
-    #         # 过滤
-    #         kwargs["queryset"] = RuleCondition.objects.filter(team__in=request.user.team.all())
-    #         # filter_horizontal 保持横向展示
-    #         kwargs['widget'] = widgets.FilteredSelectMultiple(
-    #             db_field.verbose_name,
-    #             db_field.name in self.filter_vertical
-    #         )
-    #     if db_field.name == "team":
-    #         # 过滤
-    #         kwargs["queryset"] = request.user.team.all()
-    #         # filter_horizontal 保持横向展示
-    #         kwargs['widget'] = widgets.FilteredSelectMultiple(
-    #             db_field.verbose_name,
-    #             db_field.name in self.filter_vertical
-    #         )
-    #     return super(RuleAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
-
-
 class LevelTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        return super(LevelTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+    #     return super(LevelTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(LevelTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_form(self, request, obj=None, **kwargs):
         help_texts = {
@@ -136,6 +137,7 @@ class LevelTypeAdmin(admin.ModelAdmin):
 
 class LevelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'rule')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -143,22 +145,30 @@ class LevelAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
         kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'level')
         return super(LevelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(LevelAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class PositionTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        return super(PositionTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+    #     return super(PositionTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(PositionTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_model_perms(self, request):
         return return_get_model_perms(self, request)
@@ -166,6 +176,7 @@ class PositionTypeAdmin(admin.ModelAdmin):
 
 class PositionAdmin(admin.ModelAdmin):
     list_display = ('name', 'score', 'workload', 'bonus', 'rule')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -173,29 +184,38 @@ class PositionAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
         kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'position')
         return super(PositionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(PositionAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class SkillTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        return super(SkillTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+    #     return super(SkillTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(SkillTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_model_perms(self, request):
         return return_get_model_perms(self, request)
 
 
 class SkillAdmin(admin.ModelAdmin):
-    list_display = ('type', 'name', 'score', 'workload', 'bonus')
+    list_display = ('type', 'name', 'score', 'workload', 'bonus', 'rule')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -203,28 +223,38 @@ class SkillAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'skill')
         return super(SkillAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(SkillAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class RewardTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-        return super(RewardTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+    #     return super(RewardTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(RewardTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_model_perms(self, request):
         return return_get_model_perms(self, request)
 
 
 class RewardAdmin(admin.ModelAdmin):
-    list_display = ('type', 'name', 'score', 'workload', 'bonus')
+    list_display = ('type', 'name', 'score', 'workload', 'bonus', 'rule')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -232,12 +262,17 @@ class RewardAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'reward')
         return super(RewardAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(RewardAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class ShiftAdmin(admin.ModelAdmin):
     list_display = ('name', 'score', 'workload', 'bonus', 'rule')
+    filter_horizontal = ('team',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -245,9 +280,12 @@ class ShiftAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
         kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'shift')
         return super(ShiftAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(ShiftAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
 # class ReferenceTypeAdmin(admin.ModelAdmin):
@@ -283,7 +321,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'reward', 'level', 'title', 'score', 'workload', 'bonus')
     fields = ('user', 'date', 'reward', 'get_reward_rule', 'level', 'get_level_rule', 'title', 'content', 'score', 'workload', 'bonus', 'created_datetime', 'created_user')
     list_display_links = ('user',)
-    # filter_horizontal = ('reference',)
+    filter_horizontal = ('team',)
     readonly_fields = ('get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
     list_filter = (
         ('date', DateRangeFilter), 'user__team'
@@ -346,6 +384,14 @@ class RewardRecordAdmin(admin.ModelAdmin):
         qs = return_get_queryset(request, qs)
         return qs
 
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+    #     return super(RewardRecordAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(RewardRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+
     # def formfield_for_manytomany(self, db_field, request, **kwargs):
     #     if not request.user.is_superuser:
     #         try:
@@ -398,6 +444,7 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'get_level_rule', 'verified')
     list_editable = ('verified',)
+    filter_horizontal = ('team',)
     fields = ('user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'get_level_rule', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
     readonly_fields = ('created_datetime', 'working_time', 'get_initial_workload', 'get_level_rule', 'verified_user', 'verified_datetime')
     list_filter = (
@@ -425,6 +472,14 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs)
         return qs
+
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
+    #     return super(WorkloadRecordAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(WorkloadRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     # def get_reference(self, obj):
     #     return ' '.join([i.name for i in obj.reference.all()])
@@ -538,6 +593,7 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Rule, RuleAdmin)
+admin.site.register(LevelType, LevelTypeAdmin)
 admin.site.register(Level, LevelAdmin)
 admin.site.register(PositionType, PositionTypeAdmin)
 admin.site.register(Position, PositionAdmin)

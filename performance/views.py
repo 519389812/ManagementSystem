@@ -167,6 +167,17 @@ def performance(request):
     return render(request, "performance.html")
 
 
+def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, obj):
+    if not request.user.is_superuser:
+        try:
+            team_id = request.user.team.id
+            if db_field.name == db_field_name:
+                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id))
+        except:
+            pass
+    return kwargs
+
+
 @check_authority
 def add_workload(request):
     shift_list = list(Shift.objects.all().values("id", "name"))
@@ -174,36 +185,39 @@ def add_workload(request):
     level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
     if not request.user.is_superuser:
         team_id = str(request.user.team.id)
-        team_list = list(Team.objects.filter(related_parent__in=team_id).values("id", "name", "parent__name"))
+        team_list = list(Team.objects.filter(related_parent__in=team_id))
     else:
-        team_list = list(Team.objects.all().values("id", "name", "parent__name"))
+        team_list = list(Team.objects.all())
+    team_list = [{'id': team.id, 'name': team.get_related_parent_name()} for team in team_list]
     if request.method == "POST":
-        shift_name = request.POST.get("shift", "")
-        position_name = request.POST.get("position", "")
-        level_name = request.POST.get("level", "")
+        shift_id = request.POST.get("shift", "")
+        position_id = request.POST.get("position", "")
+        level_id = request.POST.get("level", "")
         start_datetime = request.POST.get("start_datetime", "")
         end_datetime = request.POST.get("end_datetime", "")
-        assigned_team_name = request.POST.get("assigned_team", "")
+        assigned_team_id = request.POST.get("assigned_team", "")
         remark = request.POST.get("remark", "")
-        if all([shift_name, position_name, level_name, start_datetime, end_datetime, assigned_team_name]):
+        if not all([shift_id, position_id, start_datetime, end_datetime, assigned_team_id]):
             return render(request, "error_500.html", status=500)
-        try:
-            start_datetime = timezone.datetime.strptime(start_datetime, "%Y-%m-%d %H:%M:%S")
-            end_datetime = timezone.datetime.strptime(end_datetime, "%Y-%m-%d %H:%M:%S")
-            working_time = round((end_datetime - start_datetime).seconds / 60 / 60, 2)
-            shift = Shift.objects.get(name=shift_name)
-            position = Position.objects.get(name=position_name)
-            level = Level.objects.get(name=level_name)
-            assigned_team = Team.objects.get(name=assigned_team_name)
-            WorkloadRecord.objects.create(user=request.user, shift=shift, position=position, level=level,
-                                          start_datetime=start_datetime, end_datetime=end_datetime,
-                                          working_time=working_time, assigned_team=assigned_team, remark=remark)
-            return render(request, "add_workload.html",
-                          {"shift_list": shift_list, "position_list": position_list, "team_list": team_list,
-                           "level_list": level_list, "shift_name": shift_name, "position_name": position_name,
-                           "level_name": level_name, "assigned_team_name": assigned_team_name})
-        except:
-            return render(request, "error_500.html", status=500)
+        # try:
+        start_datetime = timezone.datetime.strptime(start_datetime, "%Y-%m-%dT%H:%M")
+        end_datetime = timezone.datetime.strptime(end_datetime, "%Y-%m-%dT%H:%M")
+        working_time = round((end_datetime - start_datetime).seconds / 60 / 60, 2)
+        shift = Shift.objects.get(id=shift_id)
+        position = Position.objects.get(id=position_id)
+        level = Level.objects.get(id=level_id)
+        print(assigned_team_id)
+        assigned_team = Team.objects.get(id=assigned_team_id)
+        print(type(assigned_team), type(request.user))
+        WorkloadRecord.objects.create(user=request.user, shift=shift, position=position, level=level,
+                                      start_datetime=start_datetime, end_datetime=end_datetime,
+                                      working_time=working_time, assigned_team=assigned_team, remark=remark)
+        return render(request, "add_workload.html",
+                      {"shift_list": shift_list, "position_list": position_list, "team_list": team_list,
+                       "level_list": level_list, "shift_name": shift.name, "position_name": position.name,
+                       "level_name": level.name, "assigned_team_name": assigned_team.name})
+        # except:
+        #     return render(request, "error_500.html", status=500)
     else:
         return render(request, "add_workload.html", {"shift_list": shift_list, "position_list": position_list,
                                                      "team_list": team_list, 'level_list': level_list})

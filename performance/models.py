@@ -8,7 +8,7 @@ from django.apps import apps
 
 class Rule(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="名称")
+    name = models.CharField(max_length=100, verbose_name="名称")
     effect = models.CharField(max_length=100, verbose_name="作用于")
     date_condition = models.CharField(max_length=100, null=True, blank=True, verbose_name="时间条件")
     condition = models.CharField(max_length=100, null=True, blank=True, verbose_name="数量条件")
@@ -16,7 +16,7 @@ class Rule(models.Model):
     workload = models.CharField(max_length=100, null=True, blank=True, verbose_name="工作量权重")
     bonus = models.CharField(max_length=100, null=True, blank=True, verbose_name="奖金权重")
     man_hours = models.CharField(max_length=100, null=True, blank=True, verbose_name="工时权重")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     def __init__(self, *args, **kwargs):
         super(Rule, self).__init__(*args, **kwargs)
@@ -27,7 +27,7 @@ class Rule(models.Model):
                 rule_choices.append((model._meta.model_name, model._meta.verbose_name))
             except:
                 pass
-        self._meta.get_field('effect').choices = tuple(rule_choices)
+        self._meta.get_field('effect').choices = rule_choices
 
     class Meta:
         verbose_name = '规则'
@@ -48,8 +48,8 @@ class Rule(models.Model):
 
 class LevelType(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="程度类别名称")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    name = models.CharField(max_length=100, verbose_name="程度类别名称")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '程度类别'
@@ -62,9 +62,9 @@ class LevelType(models.Model):
 class Level(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(LevelType, on_delete=models.CASCADE, verbose_name="程度类别")
-    name = models.CharField(max_length=100, unique=True, verbose_name="程度名称")
+    name = models.CharField(max_length=100, verbose_name="程度名称")
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '程度'
@@ -76,8 +76,8 @@ class Level(models.Model):
 
 class PositionType(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="岗位类别")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    name = models.CharField(max_length=100, verbose_name="岗位类别")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '岗位类别'
@@ -90,13 +90,13 @@ class PositionType(models.Model):
 class Position(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(PositionType, on_delete=models.CASCADE, verbose_name="岗位类别")
-    name = models.CharField(max_length=300, unique=True, verbose_name="岗位名称")
+    name = models.CharField(max_length=300, verbose_name="岗位名称")
     score = models.FloatField(verbose_name="岗位基础分数")
     workload = models.FloatField(verbose_name="岗位基础工作量")
     bonus = models.FloatField(verbose_name="岗位基础奖金")
     man_hours = models.BooleanField(verbose_name="是否计算工时")
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '岗位'
@@ -108,8 +108,8 @@ class Position(models.Model):
 
 class SkillType(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="技能类别")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    name = models.CharField(max_length=100, verbose_name="技能类别")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '技能类别'
@@ -122,11 +122,12 @@ class SkillType(models.Model):
 class Skill(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(SkillType, on_delete=models.CASCADE, verbose_name="技能类别")
-    name = models.CharField(max_length=100, unique=True, verbose_name="技能名称")
+    name = models.CharField(max_length=100, verbose_name="技能名称")
     score = models.FloatField(verbose_name="技能基础分数")
     workload = models.FloatField(verbose_name="技能基础工作量")
     bonus = models.FloatField(verbose_name="技能基础奖金")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '技能'
@@ -138,8 +139,8 @@ class Skill(models.Model):
 
 class RewardType(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="奖惩类别")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    name = models.CharField(max_length=100, verbose_name="奖惩类别")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '奖惩类别'
@@ -152,11 +153,12 @@ class RewardType(models.Model):
 class Reward(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(RewardType, on_delete=models.CASCADE, verbose_name="奖惩类别")
-    name = models.CharField(max_length=100, unique=True, verbose_name="奖惩名称")
+    name = models.CharField(max_length=100, verbose_name="奖惩名称")
     score = models.FloatField(verbose_name="奖惩基础分数")
     workload = models.FloatField(verbose_name="奖惩基础工作量")
     bonus = models.FloatField(verbose_name="奖惩基础奖金")
-    team = models.ForeignKey(Team, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '奖惩'
@@ -168,12 +170,12 @@ class Reward(models.Model):
 
 class Shift(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True, verbose_name="班次")
+    name = models.CharField(max_length=100, verbose_name="班次")
     score = models.FloatField(verbose_name="班次基础分数")
     workload = models.FloatField(verbose_name="班次基础工作量")
     bonus = models.FloatField(verbose_name="班次基础奖金")
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '班次'
@@ -196,7 +198,7 @@ class RewardRecord(models.Model):
     content = models.TextField(max_length=1000, blank=True, verbose_name="详细情况")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     created_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="登记人")
-    team = models.ForeignKey(Team, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '奖惩记录'
@@ -233,7 +235,7 @@ class WorkloadRecord(models.Model):
     verified = models.BooleanField(default=False, verbose_name="审核状态")
     verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
     verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
-    team = models.ForeignKey(Team, blank=True, on_delete=models.CASCADE, verbose_name="目标组")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '工作量记录'

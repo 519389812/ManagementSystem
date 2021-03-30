@@ -39,9 +39,9 @@
                         <select class="form-control" id="shift" name="shift">
                             {% for shift in shift_list %}
                                 {% if shift == shift_name %}
-                                    <option selected>shift</option>
+                                    <option selected value="{{ shift.id }}">{{ shift.name }}</option>
                                 {% else %}
-                                    <option>shift</option>
+                                    <option value="{{ shift.id }}">{{ shift.name }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
@@ -54,9 +54,9 @@
                         <select class="form-control" id="position" name="position">
                             {% for position in position_list %}
                                 {% if position == position_name %}
-                                    <option selected>position</option>
+                                    <option selected value="{{ position.id }}">{{ position.name }}</option>
                                 {% else %}
-                                    <option>position</option>
+                                    <option value="{{ position.id }}">{{ position.name }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
@@ -69,9 +69,9 @@
                         <select class="form-control" id="level" name="level">
                             {% for level in level_list %}
                                 {% if level == level_name %}
-                                    <option selected>level</option>
+                                    <option selected value="{{ level.id }}">{{ level.name }}</option>
                                 {% else %}
-                                    <option>level</option>
+                                    <option value="{{ level.id }}">{{ level.name }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
@@ -100,9 +100,9 @@
                         <select class="form-control" id="assigned_team" name="assigned_team">
                             {% for team in team_list %}
                                 {% if team == assigned_team_name %}
-                                    <option selected>team</option>
+                                    <option selected value="{{ team.id }}">{{ team.name }}</option>
                                 {% else %}
-                                    <option>team</option>
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>

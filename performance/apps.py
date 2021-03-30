@@ -1,5 +1,7 @@
 from django.apps import AppConfig
 
 
-class WorklordConfig(AppConfig):
-    name = '绩效'
+class PerformanceConfig(AppConfig):
+    name = 'performance'
+    verbose_name = "绩效"
+    verbose_name_plural = "绩效"
