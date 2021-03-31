@@ -65,6 +65,11 @@
                             <a href="#"><strong>总奖金</strong></a>
                         </div>
                     </th>
+                    <th>
+                        <div class="text">
+                            <a href="#"><strong>总工时</strong></a>
+                        </div>
+                    </th>
                 </tr>
             </thead>
 
@@ -82,6 +87,7 @@
                         <td><strong>{{ row.total_score }}</strong></td>
                         <td><strong>{{ row.total_workload }}</strong></td>
                         <td><strong>{{ row.total_bonus }}</strong></td>
+                        <td><strong>{{ row.total_man_hours }}</strong></td>
                     </tr>
                 {% endfor %}
             </tbody>
