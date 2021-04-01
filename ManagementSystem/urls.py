@@ -69,8 +69,6 @@ urlpatterns = [
     re_path(r'check_set_user_verify_email/(.*)/$', user_views.check_set_user_verify_email, name="check_set_user_verify_email"),
     re_path(r'reset_password_by_question/(.*)/$', user_views.reset_password_by_question, name="reset_password_by_question"),
     re_path(r'reset_password_by_email/(.*)/$', user_views.reset_password_by_email, name="reset_password_by_email"),
-    re_path('login/(.+)/$', user_views.login, name="login"),
-    re_path('register/(.+)/$', user_views.register, name="register"),
 
     # document
     path('document/', document_views.document, name="document"),

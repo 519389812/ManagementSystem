@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from performance.models import Position, RewardRecord, WorkloadRecord, Level, Shift
 from team.models import Team
-from user.views import check_authority
+from user.views import check_authority, check_grouping
 from ManagementSystem.views import parse_url_param
 from django.utils import timezone
 import pandas as pd
@@ -148,7 +148,6 @@ def workload_summary_export(request):
         return redirect(url)
     outfile = BytesIO()
     data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
-    print(data)
     data = data.rename(columns={'id': '序号', 'employee_name_id': '员工姓名', 'position_name_id': '岗位',
                                 'position_score': '岗位基础分', 'shifts': '早晚班', 'score': '评分',
                                 'penalty_details': '奖惩', 'total_score': '总分', 'date': '日期', "remark": "备注"})
@@ -180,6 +179,7 @@ def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, ob
 
 
 @check_authority
+@check_grouping
 def add_workload(request):
     shift_list = list(Shift.objects.all().values("id", "name"))
     position_list = list(Position.objects.all().values("id", "name"))
@@ -227,6 +227,7 @@ def add_workload(request):
 
 
 @check_authority
+@check_grouping
 def view_workload(request):
     if request.method == "GET":
         page_num = request.GET.get("page", '1')

@@ -70,6 +70,14 @@ def check_accessible(model_object):
     return func_wrapper
 
 
+def check_grouping(func):
+    def wrapper(*args, **kwargs):
+        if not args[0].user.team:
+            return render(args[0], "user_setting.html", {'msg': '您还未有分组，请先进行分组设置！'})
+        return func(*args, **kwargs)
+    return wrapper
+
+
 def home(request):
     return render(request, "home.html")
 
