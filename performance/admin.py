@@ -9,6 +9,7 @@ from django.apps import apps
 from django.utils import timezone
 import re
 from django.contrib import messages
+import math
 
 
 def return_get_queryset(request, qs, field_name):
@@ -63,6 +64,10 @@ def return_get_model_perms(self, request):
     else:
         model_perms = {}
     return model_perms
+
+
+def half_ceil(x):
+    return math.modf(x)[1] + (0.5 if math.modf(x)[0] < 0.5 else 1)
 
 
 class RuleAdmin(admin.ModelAdmin):
@@ -341,18 +346,6 @@ class RewardRecordAdmin(admin.ModelAdmin):
             return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
         return return_column
 
-    def get_weight_score(self, obj):
-        return self.get_weight_column(obj, 'score')
-    get_weight_score.short_description = "分数"
-
-    def get_weight_workload(self, obj):
-        return self.get_weight_column(obj, 'workload')
-    get_weight_score.short_description = "工作量"
-
-    def get_weight_bonus(self, obj):
-        return self.get_weight_column(obj, 'bonus')
-    get_weight_score.short_description = "奖金"
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = return_get_queryset(request, qs, 'team')
@@ -484,18 +477,6 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
             return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
         return return_column
 
-    def get_weight_score(self, obj):
-        return self.get_weight_column(obj, 'shift', 'score') + self.get_weight_column(obj, 'position', 'score')
-    get_weight_score.short_description = "分数"
-
-    def get_weight_workload(self, obj):
-        return self.get_weight_column(obj, 'shift', 'workload') + self.get_weight_column(obj, 'position', 'workload')
-    get_weight_score.short_description = "工作量"
-
-    def get_weight_bonus(self, obj):
-        return self.get_weight_column(obj, 'shift', 'bonus') + self.get_weight_column(obj, 'position', 'bonus')
-    get_weight_score.short_description = "奖金"
-
     # def formfield_for_manytomany(self, db_field, request, **kwargs):
     #     if not request.user.is_superuser:
     #         try:
@@ -515,12 +496,12 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
                 messages.error(request, "保存失败！工作时长超过最大限制24小时！")
                 messages.set_level(request, messages.ERROR)
                 return
-            # if not change:
-            #     super().save_model(request, obj, form, change)
-            obj.score = self.get_weight_column(obj, 'shift', 'score') + self.get_weight_column(obj, 'position', 'score')
-            obj.workload = self.get_weight_column(obj, 'shift', 'workload') + self.get_weight_column(obj, 'position', 'workload')
-            obj.bonus = self.get_weight_column(obj, 'shift', 'bonus') + self.get_weight_column(obj, 'position', 'bonus')
+            if not change:
+                super().save_model(request, obj, form, change)
             obj.working_time = working_time
+            obj.score = self.get_weight_column(obj, 'shift', 'score') + self.get_weight_column(obj, 'position', 'score') * half_ceil(working_time)
+            obj.workload = self.get_weight_column(obj, 'shift', 'workload') + self.get_weight_column(obj, 'position', 'workload') * half_ceil(working_time)
+            obj.bonus = self.get_weight_column(obj, 'shift', 'bonus') + self.get_weight_column(obj, 'position', 'bonus') * half_ceil(working_time)
             if obj.position.man_hours:
                 if obj.level:
                     obj.man_hours = eval('%s %s' % (working_time, obj.level.rule.man_hours)) if obj.level.rule.man_hours else working_time
@@ -557,15 +538,9 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
             return response
         metrics = {
             'count': Count('user'),
-            'shift_score': Sum(F('shift__score') * F('working_time')),
-            'shift_workload': Sum(F('shift__workload') * F('working_time')),
-            'shift_bonus': Sum('shift__bonus'),
-            'position_score': Sum(F('position__score') * F('working_time')),
-            'position_workload': Sum(F('position__workload') * F('working_time')),
-            'position_bonus': Sum('position__bonus'),
-            'total_score': Sum(F('shift__score') * F('working_time')) + Sum(F('position__score') * F('working_time')),
-            'total_workload': Sum(F('shift__workload') * F('working_time')) + Sum(F('position__workload') * F('working_time')),
-            'total_bonus': Sum('shift__bonus') + Sum('position__bonus'),
+            'total_score': Sum('score'),
+            'total_workload': Sum('workload'),
+            'total_bonus': Sum('bonus'),
             'total_man_hours': Sum('man_hours'),
         }
         response.context_data['summary'] = list(
