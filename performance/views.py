@@ -181,16 +181,19 @@ def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, ob
 @check_authority
 @check_grouping
 def add_workload(request):
-    shift_list = list(Shift.objects.all().values("id", "name"))
-    position_list = list(Position.objects.all().values("id", "name"))
-    level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
+    if request.user.team.parent:
+        team_id = request.user.team.parent.id
+    else:
+        team_id = request.user.team.id
     if not request.user.is_superuser:
-        if request.user.team.parent:
-            team_id = request.user.team.parent.id
-        else:
-            team_id = request.user.team.id
+        shift_list = list(Shift.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id)).values("id", "name"))
+        position_list = list(Position.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id)).values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='工作量', related_parent__iregex=r'\D%s\D' % str(team_id)).values('id', 'name'))
         team_list = list(Team.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id)))
     else:
+        shift_list = list(Shift.objects.all().values("id", "name"))
+        position_list = list(Position.objects.all().values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
         team_list = list(Team.objects.all())
     team_list = [{'id': team.id, 'name': team.get_related_parent_name()} for team in team_list]
     if request.method == "POST":
@@ -227,7 +230,6 @@ def add_workload(request):
 
 
 @check_authority
-@check_grouping
 def view_workload(request):
     if request.method == "GET":
         page_num = request.GET.get("page", '1')
