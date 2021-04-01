@@ -1,5 +1,5 @@
 from django.contrib import admin
-from performance.models import LevelType, Level, Rule, PositionType, Position, SkillType, Skill, RewardType, Reward, Shift, RewardRecord, RewardSummary, WorkloadRecord, WorkloadSummary
+from performance.models import LevelType, Level, Rule, PositionType, Position, RewardType, Reward, Shift, RewardRecord, RewardSummary, WorkloadRecord, WorkloadSummary
 from team.models import Team
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
@@ -68,15 +68,16 @@ def return_get_model_perms(self, request):
 class RuleAdmin(admin.ModelAdmin):
     list_display = ('name', 'effect', 'date_condition', 'condition', 'score', 'workload', 'bonus', 'man_hours')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
 
     def get_form(self, request, obj=None, **kwargs):
         help_texts = {
-            'date_condition': '如需要规定90天内重复某个差错，则时间条件设为：“<=90“，无条件则为空',
-            'condition': '如需要规定数量2次以上，则条件设为：“>=2“，无条件则为空',
-            'score': '如需设置双倍分数奖罚，则设为：“*2“',
-            'workload': '如需设置扣20工作量，则设为：“-20“',
-            'bonus': '如需设置奖金减半，则设为：“/2“',
-            'man_hours': '如需设置工时加成30%，则设为：“*0.3，特别注意：工时仅作用于工作量表“',
+            'date_condition': '如需要规定90天内重复某个差错，则时间条件设为：“<=90“，无条件则为空，当规则指向“程度”时，条件无效',
+            'condition': '如需要规定数量2次以上，则条件设为：“>=2“，无条件则为空，当规则指向“程度”时，条件无效',
+            'score': '如需设置双倍分数奖罚，则设为：“*2“，无权重则为空',
+            'workload': '如需设置扣20工作量，则设为：“-20“，无权重则为空',
+            'bonus': '如需设置奖金减半，则设为：“/2“，无权重则为空',
+            'man_hours': '如需设置工时加成30%，则设为：“*0.3，特别注意：工时仅作用于工作量表“，无权重则为空',
         }
         kwargs.update({'help_texts': help_texts})
         return super(RuleAdmin, self).get_form(request, obj, **kwargs)
@@ -113,6 +114,7 @@ class RuleAdmin(admin.ModelAdmin):
 class LevelTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -138,6 +140,8 @@ class LevelTypeAdmin(admin.ModelAdmin):
 class LevelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'rule')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
+    autocomplete_fields = ['type', 'rule']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -156,6 +160,7 @@ class LevelAdmin(admin.ModelAdmin):
 class PositionTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -177,6 +182,8 @@ class PositionTypeAdmin(admin.ModelAdmin):
 class PositionAdmin(admin.ModelAdmin):
     list_display = ('name', 'score', 'workload', 'bonus', 'rule')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
+    autocomplete_fields = ['type', 'rule']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -192,48 +199,10 @@ class PositionAdmin(admin.ModelAdmin):
         return super(PositionAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
-class SkillTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-    filter_horizontal = ('team',)
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs)
-        return qs
-
-    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
-    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-    #     return super(SkillTypeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
-        return super(SkillTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
-
-    def get_model_perms(self, request):
-        return return_get_model_perms(self, request)
-
-
-class SkillAdmin(admin.ModelAdmin):
-    list_display = ('type', 'name', 'score', 'workload', 'bonus', 'rule')
-    filter_horizontal = ('team',)
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs)
-        return qs
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_rule(request, db_field, kwargs, 'rule', Rule, 'skill')
-        return super(SkillAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
-        return super(SkillAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
-
-
 class RewardTypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -255,6 +224,8 @@ class RewardTypeAdmin(admin.ModelAdmin):
 class RewardAdmin(admin.ModelAdmin):
     list_display = ('type', 'name', 'score', 'workload', 'bonus', 'rule')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
+    autocomplete_fields = ['type', 'rule']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -273,6 +244,8 @@ class RewardAdmin(admin.ModelAdmin):
 class ShiftAdmin(admin.ModelAdmin):
     list_display = ('name', 'score', 'workload', 'bonus', 'rule')
     filter_horizontal = ('team',)
+    search_fields = ('name',)
+    autocomplete_fields = ['rule']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -318,11 +291,12 @@ class ShiftAdmin(admin.ModelAdmin):
 
 
 class RewardRecordAdmin(admin.ModelAdmin):
-    list_display = ('user', 'date', 'reward', 'level', 'title', 'score', 'workload', 'bonus')
-    fields = ('user', 'date', 'reward', 'get_reward_rule', 'level', 'get_level_rule', 'title', 'content', 'score', 'workload', 'bonus', 'created_datetime', 'created_user')
+    list_display = ('id', 'user', 'date', 'reward', 'level', 'title', 'score', 'workload', 'bonus')
+    fields = ('id', 'user', 'date', 'reward', 'get_reward_rule', 'level', 'get_level_rule', 'title', 'content', 'score', 'workload', 'bonus', 'created_datetime', 'created_user', 'team')
     list_display_links = ('user',)
+    autocomplete_fields = ['user', 'reward', 'level']
     filter_horizontal = ('team',)
-    readonly_fields = ('get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
+    readonly_fields = ('id', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
     list_filter = (
         ('date', DateRangeFilter), 'user__team'
     )
@@ -384,10 +358,6 @@ class RewardRecordAdmin(admin.ModelAdmin):
         qs = return_get_queryset(request, qs)
         return qs
 
-    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
-    #     kwargs = return_formfield_for_foreignkey(request, db_field, kwargs, 'team', Team)
-    #     return super(RewardRecordAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
         return super(RewardRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
@@ -445,6 +415,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified')
     list_editable = ('verified',)
     filter_horizontal = ('team',)
+    autocomplete_fields = ['user', 'shift', 'position', 'level', 'assigned_team']
     fields = ('id', 'user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
     readonly_fields = ('id', 'user', 'created_datetime', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified_user', 'verified_datetime')
     list_filter = (
@@ -608,8 +579,6 @@ admin.site.register(LevelType, LevelTypeAdmin)
 admin.site.register(Level, LevelAdmin)
 admin.site.register(PositionType, PositionTypeAdmin)
 admin.site.register(Position, PositionAdmin)
-admin.site.register(SkillType, SkillTypeAdmin)
-admin.site.register(Skill, SkillAdmin)
 admin.site.register(RewardType, RewardTypeAdmin)
 admin.site.register(Reward, RewardAdmin)
 admin.site.register(Shift, ShiftAdmin)

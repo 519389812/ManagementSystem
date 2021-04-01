@@ -27,67 +27,65 @@
     </ol>
 
     <table class="table table-hover">
-        {% request.user.get_full_name %}的工作量登记记录
+        {{ request.user.get_full_name }}的工作量登记记录
         <thead>
-        <tr>
-            <th scope="col">记录编号</th>
-            <th scope="col">班次</th>
-            <th scope="col">岗位</th>
-            <th scope="col">程度</th>
-            <th scope="col">开始时间</th>
-            <th scope="col">结束时间</th>
-            <th scope="col">时长</th>
-            <th scope="col">指派</th>
-            <th scope="col">审核状态</th>
-            <th scope="col">审核人</th>
-        </tr>
+            <tr>
+                <th scope="col">记录编号</th>
+                <th scope="col">班次</th>
+                <th scope="col">岗位</th>
+                <th scope="col">程度</th>
+                <th scope="col">开始时间</th>
+                <th scope="col">结束时间</th>
+                <th scope="col">时长</th>
+                <th scope="col">指派</th>
+                <th scope="col">审核状态</th>
+                <th scope="col">审核人</th>
+            </tr>
         </thead>
         <tbody>
-            {% for workload in workload_list %}
+            {% for workload in page_workload_list %}
                 <tr>
-                    <th scope="row">workload.id</th>
-                    <td>workload.shift.name</td>
-                    <td>workload.position.name</td>
-                    <td>workload.level.name</td>
-                    <td>workload.start_datetime</td>
-                    <td>workload.end_datetime</td>、
-                    <td>workload.working_time</td>
-                    <td>workload.assigned_team</td>
-                    {% if workload.verified == "审核通过" %}
-                        <td class="table-success">workload.verified</td>
-                    {% elif workload.verified == "审核不通过" %}
-                        <td class="table-danger">>workload.verified</td>
+                    <th scope="row">{{ workload.id }}</th>
+                    <td>{{ workload.shift.name }}</td>
+                    <td>{{ workload.position.name }}</td>
+                    <td>{{ workload.level.name }}</td>
+                    <td>{{ workload.start_datetime }}</td>
+                    <td>{{ workload.end_datetime }}</td>
+                    <td>{{ workload.working_time }}</td>
+                    <td>{{ workload.assigned_team }}</td>
+                    {% if workload.verified == True %}
+                        <td class="table-success">通过</td>
                     {% else %}
-                        <td>workload.verified</td>
+                        <td class="table-danger">未通过</td>
                     {% endif %}
-                    <td>workload.verified_user</td>
+                    <td>{{ workload.verified_user }}</td>
                 </tr>
             {% endfor %}
         </tbody>
-        共有{{ total_workload }}条记录
     </table>
+    共有{{ total_workload }}条记录
 
     <!-- Pagination -->
     <ul class="pagination justify-content-center">
         <li class="page-item">
-            <a class="page-link" href="{% url 'view_workload' %}?page={{ page }}" aria-label="Previous">
+            <a class="page-link" href="{% url 'view_workload' %}?page=1" aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
                 <span class="sr-only">首页</span>
             </a>
         </li>
-        {% with ''|center:total_page as range %}
+        {% with ''|center:total_page_num as range %}
             {% for _ in range %}
                 <li class="page-item">
                     {% if page == forloop.counter %}
-                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page }}" aria-disabled="true">{{ forloop.counter }}</a>
+                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page_num }}" aria-disabled="true">{{ forloop.counter }}</a>
                     {% else %}
-                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page }}">{{ forloop.counter }}</a>
+                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page_num }}">{{ forloop.counter }}</a>
                     {% endif %}
                 </li>
             {% endfor %}
         {% endwith %}
         <li class="page-item">
-            <a class="page-link" href="{% url 'view_workload' total_page %}" aria-label="Next">
+            <a class="page-link" href="{% url 'view_workload' %}?page={{ total_page }}" aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
                 <span class="sr-only">尾页</span>
             </a>

@@ -24,6 +24,7 @@ class EmailVerifyRecordAdmin(admin.ModelAdmin):
 
 class QuestionVerifySourceAdmin(admin.ModelAdmin):
     list_display = ('user', 'question', 'answer')
+    autocomplete_fields = ['user']
 
     def save_model(self, request, obj, form, change):
         if form.is_valid():

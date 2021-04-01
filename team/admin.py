@@ -6,11 +6,11 @@ from django.contrib import messages
 
 
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ("name", "parent", "related_parent_name", )
+    list_display = ("id", "name", "parent", "related_parent_name", )
     list_display_links = ("name", )
     search_fields = ("name", )
-    fields = ("name", "parent", "related_parent", "related_parent_name", )
-    readonly_fields = ("related_parent", "related_parent_name", )
+    fields = ("id", "name", "parent", "related_parent", "related_parent_name", )
+    readonly_fields = ("id", "related_parent", "related_parent_name", )
     ordering = ('-related_parent',)
 
     def get_queryset(self, request):

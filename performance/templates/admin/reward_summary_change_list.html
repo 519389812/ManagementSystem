@@ -43,9 +43,9 @@
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ row.user__last_name }}{{ row.user__first_name }}</td>
                         <td>{{ row.count }}</td>
-                        <td>{{ row.bonus }}</td>
                         <td>{{ row.score }}</td>
                         <td>{{ row.workload }}</td>
+                        <td>{{ row.bonus }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

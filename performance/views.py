@@ -199,24 +199,24 @@ def add_workload(request):
         remark = request.POST.get("remark", "")
         if not all([shift_id, position_id, start_datetime, end_datetime, assigned_team_id]):
             return render(request, "error_500.html", status=500)
-        # try:
-        start_datetime = timezone.datetime.strptime(start_datetime, "%Y-%m-%dT%H:%M")
-        end_datetime = timezone.datetime.strptime(end_datetime, "%Y-%m-%dT%H:%M")
-        working_time = round((end_datetime - start_datetime).seconds / 60 / 60, 2)
-        shift = Shift.objects.get(id=int(shift_id))
-        position = Position.objects.get(id=int(position_id))
-        level = Level.objects.get(id=int(level_id)) if level_id != "" else None
-        assigned_team = Team.objects.get(id=int(assigned_team_id))
-        WorkloadRecord.objects.create(user=request.user, shift=shift, position=position, level=level,
-                                      start_datetime=start_datetime, end_datetime=end_datetime,
-                                      working_time=working_time, assigned_team=assigned_team, remark=remark)
-        msg = "登记成功！您可以继续登记下一条记录！"
-        return render(request, "add_workload.html",
-                      {"shift_list": shift_list, "position_list": position_list, "team_list": team_list,
-                       "level_list": level_list, "shift_name": shift.name, "position_name": position.name,
-                       "assigned_team_name": assigned_team.name, "msg": msg})
-        # except:
-        #     return render(request, "error_500.html", status=500)
+        try:
+            start_datetime = timezone.datetime.strptime(start_datetime, "%Y-%m-%dT%H:%M")
+            end_datetime = timezone.datetime.strptime(end_datetime, "%Y-%m-%dT%H:%M")
+            working_time = round((end_datetime - start_datetime).seconds / 60 / 60, 2)
+            shift = Shift.objects.get(id=int(shift_id))
+            position = Position.objects.get(id=int(position_id))
+            level = Level.objects.get(id=int(level_id)) if level_id != "" else None
+            assigned_team = Team.objects.get(id=int(assigned_team_id))
+            WorkloadRecord.objects.create(user=request.user, shift=shift, position=position, level=level,
+                                          start_datetime=start_datetime, end_datetime=end_datetime,
+                                          working_time=working_time, assigned_team=assigned_team, remark=remark)
+            msg = "登记成功！您可以继续登记下一条记录！"
+            return render(request, "add_workload.html",
+                          {"shift_list": shift_list, "position_list": position_list, "team_list": team_list,
+                           "level_list": level_list, "shift_name": shift.name, "position_name": position.name,
+                           "assigned_team_name": assigned_team.name, "msg": msg})
+        except:
+            return render(request, "error_500.html", status=500)
     else:
         return render(request, "add_workload.html", {"shift_list": shift_list, "position_list": position_list,
                                                      "team_list": team_list, 'level_list': level_list})
@@ -225,13 +225,14 @@ def add_workload(request):
 @check_authority
 def view_workload(request):
     if request.method == "GET":
-        page = request.GET.get("page", '1')
+        page_num = request.GET.get("page", '1')
         create_datetime = timezone.localtime(timezone.now()) - timezone.timedelta(days=41)
         workload_list = WorkloadRecord.objects.filter(user=request.user, created_datetime__gte=create_datetime)
         paginator = Paginator(workload_list, 20)
-        page_workload_list = paginator.get_page(int(page))
-        render(request, "view_workload.html", {"page_workload_list": page_workload_list,
-                                               "total_workload": paginator.count, "total_page": paginator.num_pages,
-                                               "page": page})
+        page = paginator.get_page(int(page_num))
+        return render(request, "view_workload.html", {"page_workload_list": list(page.object_list),
+                                                      "total_workload": paginator.count,
+                                                      "total_page_num": paginator.num_pages,
+                                                      "page_num": page.number})
     else:
         return render(request, "error_500.html", status=500)
