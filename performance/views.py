@@ -184,7 +184,10 @@ def add_workload(request):
     position_list = list(Position.objects.all().values("id", "name"))
     level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
     if not request.user.is_superuser:
-        team_id = request.user.team.parent.id
+        if request.user.team.parent:
+            team_id = request.user.team.parent.id
+        else:
+            team_id = request.user.team.id
         team_list = list(Team.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id)))
     else:
         team_list = list(Team.objects.all())
