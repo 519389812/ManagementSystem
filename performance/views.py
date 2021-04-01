@@ -148,6 +148,7 @@ def workload_summary_export(request):
         return redirect(url)
     outfile = BytesIO()
     data = pd.DataFrame(queryset.values("user__last_name", "user__first_name", "reward__name"))
+    print(data)
     data = data.rename(columns={'id': '序号', 'employee_name_id': '员工姓名', 'position_name_id': '岗位',
                                 'position_score': '岗位基础分', 'shifts': '早晚班', 'score': '评分',
                                 'penalty_details': '奖惩', 'total_score': '总分', 'date': '日期', "remark": "备注"})
