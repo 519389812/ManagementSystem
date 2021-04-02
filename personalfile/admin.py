@@ -2,7 +2,8 @@ from django.contrib import admin
 from personalfile.models import SkillType, Skill
 from team.models import Team
 from performance.models import Rule
-from performance.admin import return_get_queryset, return_formfield_for_manytomany, return_formfield_for_foreignkey_rule, return_get_model_perms
+from performance.admin import return_formfield_for_manytomany, return_formfield_for_foreignkey_rule, return_get_model_perms
+from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_team_regex
 
 
 class SkillTypeAdmin(admin.ModelAdmin):
@@ -12,7 +13,7 @@ class SkillTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs)
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -35,7 +36,7 @@ class SkillAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs)
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
