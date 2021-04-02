@@ -199,11 +199,11 @@ class WorkloadRecord(models.Model):
     workload = models.FloatField(null=True, blank=True, verbose_name="工作量")
     bonus = models.FloatField(null=True, blank=True, verbose_name="奖金")
     man_hours = models.FloatField(null=True, blank=True, verbose_name="工时")
-    assigned_team = models.ForeignKey(Team, related_name='assigned_team', on_delete=models.CASCADE, verbose_name="指派")
+    assigned_team = models.ForeignKey(Team, related_name='workload_assigned_team', on_delete=models.CASCADE, verbose_name="指派")
     remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     verified = models.BooleanField(default=False, verbose_name="审核状态")
-    verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
+    verified_user = models.ForeignKey(User, null=True, blank=True, related_name='workload_verified_user', on_delete=models.CASCADE, verbose_name="审核人")
     verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
 
     class Meta:
@@ -253,17 +253,17 @@ class Output(models.Model):
 
 class OutputRecord(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, related_name='workload_user', on_delete=models.CASCADE, verbose_name="登记人")
+    user = models.ForeignKey(User, related_name='output_user', on_delete=models.CASCADE, verbose_name="登记人")
     date = models.DateField(verbose_name="日期")
     output = models.ForeignKey(Output, on_delete=models.CASCADE, verbose_name="产出")
     level = models.ForeignKey(Level, on_delete=models.CASCADE, null=True, blank=True, verbose_name="程度")
     quantity = models.FloatField(verbose_name="数量")
     weight_quantity = models.FloatField(null=True, blank=True, verbose_name="加权后数量")
-    assigned_team = models.ForeignKey(Team, related_name='assigned_team', on_delete=models.CASCADE, verbose_name="审核对象")
+    assigned_team = models.ForeignKey(Team, related_name='output_assigned_team', on_delete=models.CASCADE, verbose_name="审核对象")
     remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     verified = models.BooleanField(default=False, verbose_name="审核状态")
-    verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
+    verified_user = models.ForeignKey(User, null=True, blank=True, related_name='output_verified_user', on_delete=models.CASCADE, verbose_name="审核人")
     verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
 
     class Meta:
