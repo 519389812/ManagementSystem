@@ -2,6 +2,7 @@ from django.contrib import admin
 from document.models import DocxInit, ContentStorage, SignatureStorage
 from document.docx_handler import *
 import json
+from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_team_regex
 
 
 class DocxInitAdmin(admin.ModelAdmin):
@@ -11,12 +12,7 @@ class DocxInitAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if not request.user.is_superuser:
-            try:
-                team_id = request.user.team.id
-                qs = qs.filter(team__related_parent__iregex=r'\D%s\D' % str(team_id))
-            except:
-                pass
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def save_model(self, request, obj, form, change):
@@ -37,12 +33,7 @@ class ContentStorageAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if not request.user.is_superuser:
-            try:
-                team_id = request.user.team.id
-                qs = qs.filter(docx__team__related_parent__iregex=r'\D%s\D' % str(team_id))
-            except:
-                pass
+        qs = return_get_queryset_by_team(request, qs, 'docx__team')
         return qs
 
 
@@ -56,12 +47,7 @@ class SignatureStorageAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if not request.user.is_superuser:
-            try:
-                team_id = request.user.team.id
-                qs = qs.filter(docx__team__related_parent__iregex=r'\D%s\D' % str(team_id))
-            except:
-                pass
+        qs = return_get_queryset_by_team(request, qs, 'docx__team')
         return qs
 
 

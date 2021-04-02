@@ -10,16 +10,7 @@ from django.utils import timezone
 import re
 from django.contrib import messages
 import math
-
-
-def return_get_queryset(request, qs, field_name):
-    if not request.user.is_superuser:
-        try:
-            team_id = request.user.team.id
-            qs = eval("qs.filter(%s__related_parent__iregex=r'\D%s\D')" % (field_name, str(team_id)))
-        except:
-            pass
-    return qs
+from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_team_regex
 
 
 def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, obj):
@@ -89,7 +80,7 @@ class RuleAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -123,7 +114,7 @@ class LevelTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -150,7 +141,7 @@ class LevelAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -169,7 +160,7 @@ class PositionTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -192,7 +183,7 @@ class PositionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -211,7 +202,7 @@ class RewardTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -234,7 +225,7 @@ class RewardAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -254,7 +245,7 @@ class ShiftAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -271,7 +262,7 @@ class ShiftAdmin(admin.ModelAdmin):
 #
 #     def get_queryset(self, request):
 #         qs = super().get_queryset(request)
-#         qs = return_get_queryset(request, qs, 'team')
+#         qs = return_get_queryset_by_team(request, qs, 'team')
 #         return qs
 #
 #     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -287,7 +278,7 @@ class ShiftAdmin(admin.ModelAdmin):
 #
 #     def get_queryset(self, request):
 #         qs = super().get_queryset(request)
-#         qs = return_get_queryset(request, qs, 'team')
+#         qs = return_get_queryset_by_team(request, qs, 'team')
 #         return qs
 #
 #     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -348,7 +339,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -383,7 +374,7 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'team')
+        qs = return_get_queryset_by_team(request, qs, 'team')
         return qs
 
     def changelist_view(self, request, extra_context=None):
@@ -434,7 +425,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'assigned_team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'assigned_team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -527,7 +518,7 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset(request, qs, 'assigned_team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'assigned_team')
         return qs
 
     def changelist_view(self, request, extra_context=None):

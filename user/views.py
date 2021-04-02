@@ -62,9 +62,12 @@ def check_accessible(model_object):
             if len(accessible_team_id) == 0:
                 return func(*args, **kwargs)
             else:
-                for team_id in accessible_team_id:
-                    if team_id in json.loads(args[0].user.team.related_parent):
-                        return func(*args, **kwargs)
+                if not args[0].user.team:
+                    return render(args[0], "user_setting.html", {'msg': '您还未有分组，请先进行分组设置！'})
+                else:
+                    for team_id in accessible_team_id:
+                        if team_id in json.loads(args[0].user.team.related_parent):
+                            return func(*args, **kwargs)
             return redirect('/error_not_accessible')
         return args_wrapper
     return func_wrapper

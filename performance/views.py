@@ -182,13 +182,14 @@ def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, ob
 @check_grouping
 def add_workload(request):
     if request.user.team.parent:
-        team_id = request.user.team.parent.id
+        team_id = request.user.team.parent
     else:
-        team_id = request.user.team.id
+        team_id = request.user.team
+    team = request.user.team
     if not request.user.is_superuser:
-        shift_list = list(Shift.objects.filter(team__related_parent__iregex=r'\D%s\D' % str(team_id)).values("id", "name"))
-        position_list = list(Position.objects.filter(team__related_parent__iregex=r'\D%s\D' % str(team_id)).values("id", "name"))
-        level_list = list(Level.objects.filter(type__name='工作量', team__related_parent__iregex=r'\D%s\D' % str(team_id)).values('id', 'name'))
+        shift_list = list(Shift.objects.filter(team__in=[team]).values("id", "name"))
+        position_list = list(Position.objects.filter(team__in=[team]).values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='工作量', team__in=[team]).values('id', 'name'))
         team_list = list(Team.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id)))
     else:
         shift_list = list(Shift.objects.all().values("id", "name"))
