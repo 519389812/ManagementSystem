@@ -18,7 +18,7 @@ def return_formfield_for_foreignkey(request, db_field, kwargs, db_field_name, ob
         try:
             team_id = request.user.team.id
             if db_field.name == db_field_name:
-                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id))
+                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'.*\D%s\D.*' % str(team_id))
         except:
             pass
     return kwargs
@@ -29,7 +29,7 @@ def return_formfield_for_manytomany(self, request, db_field, kwargs, db_field_na
         try:
             if db_field.name == db_field_name:
                 team_id = request.user.team.id
-                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id))
+                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'.*\D%s\D.*' % str(team_id))
                 kwargs['widget'] = widgets.FilteredSelectMultiple(
                     db_field.verbose_name,
                     db_field.name in self.filter_vertical

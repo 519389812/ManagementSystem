@@ -190,7 +190,7 @@ def add_workload(request):
         shift_list = list(Shift.objects.filter(team__in=[team]).values("id", "name"))
         position_list = list(Position.objects.filter(team__in=[team]).values("id", "name"))
         level_list = list(Level.objects.filter(type__name='工作量', team__in=[team]).values('id', 'name'))
-        team_list = list(Team.objects.filter(related_parent__iregex=r'\D%s\D' % str(team_id)))
+        team_list = list(Team.objects.filter(related_parent__iregex=r'.*\D%s\D.*' % str(team_id)))
     else:
         shift_list = list(Shift.objects.all().values("id", "name"))
         position_list = list(Position.objects.all().values("id", "name"))
