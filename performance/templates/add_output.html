@@ -4,7 +4,7 @@
 <head>
     {% load static %}
     {% include "head.html" %}
-    <title>新增工作量</title>
+    <title>新增产出</title>
 </head>
 
 <body>
@@ -17,7 +17,7 @@
 
     <!-- Page Heading/Breadcrumbs -->
     <h1 class="mt-4 mb-3">新增
-        <small>工作量</small>
+        <small>产出</small>
     </h1>
 
     <ol class="breadcrumb">
@@ -30,8 +30,8 @@
     <div class="row">
         <div class="col-lg-8 mb-4">
             {{ msg }}
-            <h3>新增工作量记录</h3>
-            <form name="addWorkloadForm" id="addWorkloadForm" action="{% url 'add_workload' %}" method="post">
+            <h3>新增产出记录</h3>
+            <form name="addWorkloadForm" id="addWorkloadForm" action="{% url 'add_output' %}" method="post">
                 {% csrf_token %}
                 <div class="control-group form-group">
                     <div class="controls">

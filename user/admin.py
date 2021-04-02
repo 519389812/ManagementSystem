@@ -14,7 +14,7 @@ class CustomUserAdmin(UserAdmin):
         }),
         ('Important dates', {'fields': ('last_login', 'ip_address', 'date_joined')}),
     )
-    list_display = ('username', 'last_name', 'first_name', 'last_login', 'is_active', 'team')
+    list_display = ('username', 'last_name', 'first_name', 'last_login', 'is_active', 'is_staff', 'is_superuser', 'team')
     list_editable = ('team',)
     filter_horizontal = ('groups', 'user_permissions', )
 

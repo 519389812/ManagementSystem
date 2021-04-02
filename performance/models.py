@@ -16,6 +16,7 @@ class Rule(models.Model):
     workload = models.CharField(max_length=100, null=True, blank=True, verbose_name="工作量权重")
     bonus = models.CharField(max_length=100, null=True, blank=True, verbose_name="奖金权重")
     man_hours = models.CharField(max_length=100, null=True, blank=True, verbose_name="工时权重")
+    quantity = models.CharField(max_length=100, null=True, blank=True, verbose_name="产出权重")
     team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     def __init__(self, *args, **kwargs):
@@ -34,12 +35,14 @@ class Rule(models.Model):
         verbose_name_plural = " 规则"
 
     def get_name_weight(self):
-        date_condition = self.date_condition if self.date_condition else '无条件'
-        condition = self.condition if self.condition else '无条件'
-        score = self.score if self.score else '无权重'
-        workload = self.workload if self.workload else '无权重'
-        bonus = self.bonus if self.bonus else '无权重'
-        get_name_weight = self.name + '\n条件：时间' + date_condition + '，数量' + condition + '\n权重：分数' + score + '，工作量' + workload + '，奖金' + bonus
+        date_condition = '时间：%s ' % self.date_condition if self.date_condition else ''
+        condition = '次数：%s ' % self.condition if self.condition else ''
+        score = '分数：%s ' % self.score if self.score else ''
+        workload = '工作量：%s ' % self.workload if self.workload else ''
+        bonus = '奖金：%s ' % self.bonus if self.bonus else ''
+        man_hours = '计算工时：%s ' % self.man_hours if self.man_hours else ''
+        output = '产出：%s ' % self.output if self.output else ''
+        get_name_weight = self.name + date_condition + condition + score + workload + bonus + man_hours + output
         return get_name_weight
 
     def __str__(self):
@@ -167,7 +170,6 @@ class RewardRecord(models.Model):
     content = models.TextField(max_length=1000, blank=True, verbose_name="详细情况")
     created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
     created_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="登记人")
-    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '奖惩记录'
@@ -188,7 +190,6 @@ class RewardSummary(RewardRecord):
 class WorkloadRecord(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, related_name='workload_user', on_delete=models.CASCADE, verbose_name="登记人")
-    shift = models.ForeignKey(Shift, on_delete=models.CASCADE, verbose_name="班次")
     position = models.ForeignKey(Position, on_delete=models.CASCADE, verbose_name="岗位")
     level = models.ForeignKey(Level, on_delete=models.CASCADE, null=True, blank=True, verbose_name="程度")
     start_datetime = models.DateTimeField(verbose_name="开始时间")
@@ -204,7 +205,6 @@ class WorkloadRecord(models.Model):
     verified = models.BooleanField(default=False, verbose_name="审核状态")
     verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
     verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
-    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
         verbose_name = '工作量记录'
@@ -219,5 +219,65 @@ class WorkloadSummary(WorkloadRecord):
 
     class Meta:
         proxy = True
-        verbose_name = '工作量记录'
+        verbose_name = '工作量统计'
         verbose_name_plural = "              工作量统计"
+
+
+class OutputType(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, verbose_name="产出类别名称")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
+
+    class Meta:
+        verbose_name = '产出类别'
+        verbose_name_plural = "          产出类别"
+
+    def __str__(self):
+        return self.name
+
+
+class Output(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(OutputType, on_delete=models.CASCADE, verbose_name="产出类别")
+    name = models.CharField(max_length=100, verbose_name="产出名称")
+    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, verbose_name="规则")
+    team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
+
+    class Meta:
+        verbose_name = '产出'
+        verbose_name_plural = "          产出"
+
+    def __str__(self):
+        return self.name
+
+
+class OutputRecord(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, related_name='workload_user', on_delete=models.CASCADE, verbose_name="登记人")
+    date = models.DateField(verbose_name="日期")
+    output = models.ForeignKey(Output, on_delete=models.CASCADE, verbose_name="产出")
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, null=True, blank=True, verbose_name="程度")
+    quantity = models.FloatField(verbose_name="数量")
+    weight_quantity = models.FloatField(null=True, blank=True, verbose_name="加权后数量")
+    assigned_team = models.ForeignKey(Team, related_name='assigned_team', on_delete=models.CASCADE, verbose_name="审核对象")
+    remark = models.TextField(max_length=1000, blank=True, verbose_name="备注")
+    created_datetime = models.DateTimeField(auto_now_add=True, verbose_name="登记时间")
+    verified = models.BooleanField(default=False, verbose_name="审核状态")
+    verified_user = models.ForeignKey(User, null=True, blank=True, related_name='verified_user', on_delete=models.CASCADE, verbose_name="审核人")
+    verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
+
+    class Meta:
+        verbose_name = '产出记录'
+        verbose_name_plural = "                 产出记录"
+        ordering = ["-created_datetime"]
+
+    def __str__(self):
+        return str(self.id)
+
+
+class OutputSummary(WorkloadRecord):
+
+    class Meta:
+        proxy = True
+        verbose_name = '产出统计'
+        verbose_name_plural = "                  产出统计"

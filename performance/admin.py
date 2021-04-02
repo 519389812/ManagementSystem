@@ -62,7 +62,7 @@ def half_ceil(x):
 
 
 class RuleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'effect', 'date_condition', 'condition', 'score', 'workload', 'bonus', 'man_hours')
+    list_display = ('name', 'effect', 'date_condition', 'condition', 'score', 'workload', 'bonus', 'man_hours', 'quantity')
     filter_horizontal = ('team',)
     search_fields = ('name',)
 
@@ -74,6 +74,7 @@ class RuleAdmin(admin.ModelAdmin):
             'workload': '如需设置扣20工作量，则设为：“-20“，无权重则为空',
             'bonus': '如需设置奖金减半，则设为：“/2“，无权重则为空',
             'man_hours': '如需设置工时加成30%，则设为：“*0.3，特别注意：工时仅作用于工作量表“，无权重则为空',
+            'quantity': '设置产出的加权，无权重则为空'
         }
         kwargs.update({'help_texts': help_texts})
         return super(RuleAdmin, self).get_form(request, obj, **kwargs)
@@ -292,7 +293,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
     list_display_links = ('user',)
     autocomplete_fields = ['user', 'reward', 'level']
     filter_horizontal = ('team',)
-    readonly_fields = ('id', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
+    readonly_fields = ('id', 'user', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
     list_filter = (
         ('date', DateRangeFilter), 'user__team'
     )
@@ -396,11 +397,11 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 
 
 class WorkloadRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified')
+    list_display = ('id', 'user', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'remark', 'created_datetime', 'verified')
     list_editable = ('verified',)
     filter_horizontal = ('team',)
-    autocomplete_fields = ['user', 'shift', 'position', 'level', 'assigned_team']
-    fields = ('id', 'user', 'shift', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
+    autocomplete_fields = ['user', 'position', 'level', 'assigned_team']
+    fields = ('id', 'user', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'remark', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
     readonly_fields = ('id', 'user', 'created_datetime', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified_user', 'verified_datetime')
     list_filter = (
         ('start_datetime', DateTimeRangeFilter), 'user__team__name',
@@ -415,8 +416,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
 
     def get_initial_workload(self, obj):
         return '分数: %s, 工作量: %s, 奖金: %s, 计算工时: %s' % (
-            obj.shift.score + obj.position.score, obj.shift.workload + obj.position.workload,
-            obj.shift.bonus + obj.position.bonus, "是" if obj.man_hours else "否")
+            obj.position.score, obj.position.workload, obj.position.bonus, "是" if obj.position.man_hours else "否")
     get_initial_workload.short_description = "基础分值"
 
     def get_level_rule(self, obj):
@@ -440,7 +440,8 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
     #     return ' '.join([i.name for i in obj.reference.all()])
     # get_reference.short_description = "影响"
 
-    def get_weight_column(self, obj, model_name, column_name):
+    def get_weight_column(self, obj, model_name, column_name, working_time):
+        is_count_time = False
         return_column = eval('obj.%s.%s' % (model_name, column_name))
         if eval('obj.%s.rule' % model_name):
             if eval('obj.%s.rule.date_condition' % model_name) or eval('obj.%s.rule.condition' % model_name):
@@ -455,14 +456,20 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
                     match = eval('count obj.%s.rule.condition' % model_name)
                     if match:
                         string = 'obj.%s.rule.%s' % (model_name, column_name)
-                        return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+                        return_column = eval('%s * %s %s' % (return_column, half_ceil(working_time), eval(string))) if eval(string) else return_column
+                        is_count_time = True
                 else:
                     if count > 0:
                         string = 'obj.%s.rule.%s' % (model_name, column_name)
-                        return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+                        return_column = eval('%s * %s %s' % (return_column, half_ceil(working_time), eval(string))) if eval(string) else return_column
+                        is_count_time = True
             else:
-                string = 'obj.%s.rule.%s' % (model_name, column_name)
-                return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+                if 'obj.%s.rule.%s' % (model_name, column_name):
+                    string = 'obj.%s.rule.%s' % (model_name, column_name)
+                    return_column = eval('%s * %s %s' % (return_column, half_ceil(working_time), eval(string))) if eval(string) else return_column
+                    is_count_time = True
+            if not is_count_time:
+                return_column = eval('%s * %s' % (return_column, half_ceil(working_time)))
         if obj.level:
             string = 'obj.level.rule.%s' % column_name
             return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
@@ -490,9 +497,9 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
             if not change:
                 super().save_model(request, obj, form, change)
             obj.working_time = working_time
-            obj.score = self.get_weight_column(obj, 'shift', 'score') + self.get_weight_column(obj, 'position', 'score') * half_ceil(working_time)
-            obj.workload = self.get_weight_column(obj, 'shift', 'workload') + self.get_weight_column(obj, 'position', 'workload') * half_ceil(working_time)
-            obj.bonus = self.get_weight_column(obj, 'shift', 'bonus') + self.get_weight_column(obj, 'position', 'bonus') * half_ceil(working_time)
+            self.get_weight_column(obj, 'position', 'score', working_time)
+            self.get_weight_column(obj, 'position', 'workload', working_time)
+            self.get_weight_column(obj, 'position', 'bonus', working_time)
             if obj.position.man_hours:
                 if obj.level:
                     obj.man_hours = eval('%s %s' % (working_time, obj.level.rule.man_hours)) if obj.level.rule.man_hours else working_time
@@ -536,6 +543,107 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
         }
         response.context_data['summary'] = list(
             qs.filter(verified=True).values("user__last_name", "user__first_name").annotate(**metrics).order_by('-total_workload')
+        )
+        return response
+
+
+class OutputRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'date', 'output', 'level', 'quantity', 'weight_quantity', 'assigned_team', 'remark')
+    fields = ('id', 'user', 'date', 'output', 'get_output_rule', 'level', 'get_level_rule', 'quantity', 'weight_quantity', 'assigned_team', 'remark', 'created_datetime', 'verified', 'verified_user', 'verified_datetime')
+    list_display_links = ('user',)
+    autocomplete_fields = ['user', 'output', 'level', 'assigned_team']
+    filter_horizontal = ('team',)
+    readonly_fields = ('id', 'user', 'weight_quantity', 'created_datetime', 'verified_user', 'verified_datetime')
+    list_filter = (
+        ('date', DateRangeFilter), 'user__team'
+    )
+
+    def get_output_rule(self, obj):
+        return obj.output.rule if obj.output.rule else "无"
+    get_output_rule.short_description = "奖惩规则"
+
+    # def get_reference(self, obj):
+    #     return ' '.join([i.name for i in obj.reference.all()])
+    # get_reference.short_description = "影响"
+
+    def get_level_rule(self, obj):
+        return obj.level.rule if obj.level else "无"
+    get_level_rule.short_description = "程度规则"
+
+    def get_weight_column(self, obj, column_name):
+        return_column = eval('obj.output.%s' % column_name)
+        if obj.reward.rule:
+            if obj.reward.rule.date_condition:
+                end_date = obj.date
+                date_delta = int(re.findall(r'\d+', obj.reward.rule.date_condition)[0])
+                start_date = end_date - timezone.timedelta(date_delta)
+                count = RewardRecord.objects.filter(user=obj.user, date__gte=start_date, date__lte=end_date).count()
+            else:
+                count = RewardRecord.objects.filter(user=obj.user).count()
+            if obj.reward.rule.condition:
+                match = eval('count %s' % obj.reward.rule.condition)
+                if match:
+                    string = 'obj.output.rule.%s' % column_name
+                    return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+            else:
+                if count > 0:
+                    string = 'obj.output.rule.%s' % column_name
+                    return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+        if obj.level:
+            string = 'obj.level.rule.%s' % column_name
+            return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+        return return_column
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = return_get_queryset_by_team(request, qs, 'team')
+        return qs
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        return super(OutputRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+
+    # def formfield_for_manytomany(self, db_field, request, **kwargs):
+    #     if not request.user.is_superuser:
+    #         try:
+    #             team_id = request.user.team.id
+    #             if db_field.name == 'reference':
+    #                 kwargs["queryset"] = Reference.objects.filter(team__related_parent__iregex=r'\D%s\D' % str(team_id))
+    #         except:
+    #             pass
+    #     return super(RewardRecordAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        if form.is_valid():
+            obj.score = self.get_weight_column(obj, 'quantity')
+            obj.created_user = request.user
+            super().save_model(request, obj, form, change)
+
+
+class OutputSummaryAdmin(admin.ModelAdmin):
+    change_list_template = "admin/reward_summary_change_list.html"
+
+    list_filter = (
+        ('date', DateTimeRangeFilter), 'user__team__name'
+    )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = return_get_queryset_by_team(request, qs, 'team')
+        return qs
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context=extra_context)
+        try:
+            qs = response.context_data['cl'].queryset
+        except (AttributeError, KeyError):
+            return response
+        metrics = {
+            'count': Count('user'),
+            'quantity': Sum('quantity'),
+        }
+        response.context_data['summary'] = list(
+            qs.values("user__last_name", "user__first_name").annotate(**metrics).order_by('-quantity')
         )
         return response
 

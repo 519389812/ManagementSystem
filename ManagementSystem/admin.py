@@ -11,7 +11,10 @@ def return_get_queryset_by_team_regex(request, qs, field_name):
 def return_get_queryset_by_team(request, qs, field_name):
     if not request.user.is_superuser:
         try:
-            qs = eval("qs.filter(%s__in=[request.user.team])" % field_name)
+            if request.user.team.parent:
+                qs = eval("qs.filter(%s__in=[request.user.team.parent])" % field_name)
+            else:
+                qs = eval("qs.filter(%s__in=[request.user.team])" % field_name)
         except:
             pass
     return qs

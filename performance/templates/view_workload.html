@@ -4,7 +4,7 @@
 <head>
     {% load static %}
     {% include "head.html" %}
-    <title>新增工作量</title>
+    <title>查询工作量</title>
 </head>
 
 <body>
@@ -31,7 +31,6 @@
         <thead>
             <tr>
                 <th scope="col">记录编号</th>
-                <th scope="col">班次</th>
                 <th scope="col">岗位</th>
                 <th scope="col">程度</th>
                 <th scope="col">开始时间</th>
@@ -46,7 +45,6 @@
             {% for workload in page_workload_list %}
                 <tr>
                     <th scope="row">{{ workload.id }}</th>
-                    <td>{{ workload.shift.name }}</td>
                     <td>{{ workload.position.name }}</td>
                     <td>{{ workload.level.name }}</td>
                     <td>{{ workload.start_datetime }}</td>
