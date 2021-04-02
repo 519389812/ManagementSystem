@@ -2,7 +2,7 @@ def return_get_queryset_by_team_regex(request, qs, field_name):
     if not request.user.is_superuser:
         try:
             team_id = request.user.team.id
-            qs = eval("qs.filter(%s__related_parent__iregex=r'.*\D%s\D.*')" % (field_name, str(team_id)))
+            qs = eval("qs.filter(%s__related_parent__iregex=r'[^0-9]*%s[^0-9]')" % (field_name, str(team_id)))
         except:
             pass
     return qs
