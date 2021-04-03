@@ -126,14 +126,14 @@
 <script>
 $(document).ready(function(){
     $('#level').change(function(){
-        var level = $(this).val();
+        var level = $('#level').val();
         var position = $('#position').val();
 
         if (level == '1' || level == '2' || level == '3')
         {
             if (position != '11' && position != '12')
             {
-                $(this).val('');
+                $('#level').val('');
                 $('#level_validate').html('仅岗位为外航值机时才可选择此选项');
             }
             else
@@ -144,14 +144,14 @@ $(document).ready(function(){
     });
 
     $('#position').change(function(){
-        var level = $(this).val();
+        var level = $('#level').val();
         var position = $('#position').val();
 
         if (level == '1' || level == '2' || level == '3')
         {
             if (position != '11' && position != '12')
             {
-                $(this).val('');
+                $('#level').val('');
                 $('#level_validate').html('仅岗位为外航值机时才可选择此选项');
             }
             else
