@@ -180,7 +180,7 @@ class PositionTypeAdmin(admin.ModelAdmin):
 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'score', 'workload', 'bonus', 'rule')
+    list_display = ('name', 'score', 'workload', 'bonus', 'man_hours', 'rule')
     filter_horizontal = ('team',)
     search_fields = ('name',)
     autocomplete_fields = ['type', 'rule']
@@ -404,9 +404,9 @@ class RewardRecordAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if form.is_valid():
-            obj.score = self.get_weight_column(obj, 'score')
-            obj.workload = self.get_weight_column(obj, 'workload')
-            obj.bonus = self.get_weight_column(obj, 'bonus')
+            obj.score = round(self.get_weight_column(obj, 'score'), 2)
+            obj.workload = round(self.get_weight_column(obj, 'workload'), 2)
+            obj.bonus = round(self.get_weight_column(obj, 'bonus'), 2)
             obj.created_user = request.user
             super().save_model(request, obj, form, change)
 
@@ -525,8 +525,9 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
         return return_column
 
     def get_weight_man_hours(self, obj, working_time):
-        if obj.position.rule.man_hours:
-            working_time = eval('%s %s' % (working_time, obj.position.rule.man_hours))
+        if obj.position.rule:
+            if obj.position.rule.man_hours:
+                working_time = eval('%s %s' % (working_time, obj.position.rule.man_hours))
         if obj.level:
             if obj.level.rule.man_hours:
                 working_time = eval('%s %s' % (working_time, obj.level.rule.man_hours))
@@ -544,21 +545,17 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if form.is_valid():
-            working_time = round(
-                (timezone.localtime(obj.end_datetime) - timezone.localtime(obj.start_datetime)).total_seconds() / 3600,
-                2)
-            if working_time > 24:
+            if obj.working_time > 24:
                 messages.error(request, "保存失败！工作时长超过最大限制24小时！")
                 messages.set_level(request, messages.ERROR)
                 return
             if not change:
                 super().save_model(request, obj, form, change)
-            obj.working_time = working_time
-            self.get_weight_column(obj, 'position', 'score', working_time)
-            self.get_weight_column(obj, 'position', 'workload', working_time)
-            self.get_weight_column(obj, 'position', 'bonus', working_time)
+            obj.score = round(self.get_weight_column(obj, 'position', 'score', obj.working_time), 2)
+            obj.workload = round(self.get_weight_column(obj, 'position', 'workload', obj.working_time), 2)
+            obj.bonus = round(self.get_weight_column(obj, 'position', 'bonus', obj.working_time), 2)
             if obj.position.man_hours:
-                obj.man_hours = self.get_weight_man_hours(obj, working_time)
+                obj.man_hours = round(self.get_weight_man_hours(obj, obj.working_time), 2)
             else:
                 obj.man_hours = 0
             verified_before = WorkloadRecord.objects.get(id=obj.id).verified
@@ -670,7 +667,7 @@ class OutputRecordAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if form.is_valid():
-            obj.score = self.get_weight_column(obj, 'quantity')
+            obj.weight_quantity = round(self.get_weight_column(obj, 'quantity'), 2)
             obj.created_user = request.user
             super().save_model(request, obj, form, change)
 
@@ -695,7 +692,7 @@ class OutputSummaryAdmin(admin.ModelAdmin):
             return response
         metrics = {
             'count': Count('user'),
-            'quantity': Sum('quantity'),
+            'weight_quantity': Sum('weight_quantity'),
         }
         response.context_data['summary'] = list(
             qs.values("user__last_name", "user__first_name").annotate(**metrics).order_by('-quantity')

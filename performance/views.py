@@ -207,7 +207,7 @@ def add_workload(request):
         try:
             start_datetime = timezone.datetime.strptime(start_datetime, "%Y-%m-%dT%H:%M")
             end_datetime = timezone.datetime.strptime(end_datetime, "%Y-%m-%dT%H:%M")
-            working_time = round((end_datetime - start_datetime).seconds / 60 / 60, 2)
+            working_time = round((end_datetime - start_datetime).total_seconds() / 3600, 2)
             position = Position.objects.get(id=int(position_id))
             level = Level.objects.get(id=int(level_id)) if level_id != "" else None
             assigned_team = Team.objects.get(id=int(assigned_team_id))
