@@ -249,13 +249,13 @@ def add_output(request):
         team_id = request.user.team.id
     team = request.user.team
     if not request.user.is_superuser:
-        output_list = list(Output.objects.filter(team__in=[team]).values("id", "name"))
-        level_list = list(Level.objects.filter(type__name='产出', team__in=[team]).values('id', 'name'))
-        team_list = list(Team.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)))
+        output_list = list(Output.objects.filter(team__in=[team]).order_by('name').values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='产出', team__in=[team]).order_by('name').values('id', 'name'))
+        team_list = list(Team.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)).order_by('name'))
     else:
-        output_list = list(Output.objects.all().values("id", "name"))
-        level_list = list(Level.objects.filter(type__name='产出').values('id', 'name'))
-        team_list = list(Team.objects.all())
+        output_list = list(Output.objects.all().order_by('name').values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='产出').order_by('name').values('id', 'name'))
+        team_list = list(Team.objects.all().order_by('name'))
     team_list = [{'id': team.id, 'name': team.get_related_parent_name()} for team in team_list]
     if request.method == "POST":
         output_id = request.POST.get("output", "")

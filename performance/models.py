@@ -42,7 +42,7 @@ class Rule(models.Model):
         bonus = '奖金：%s ' % self.bonus if self.bonus else ''
         man_hours = '计算工时：%s ' % self.man_hours if self.man_hours else ''
         quantity = '产出：%s ' % self.quantity if self.quantity else ''
-        get_name_weight = self.name + date_condition + condition + score + workload + bonus + man_hours + quantity
+        get_name_weight = self.name + ' ' + date_condition + condition + score + workload + bonus + man_hours + quantity
         return get_name_weight
 
     def __str__(self):
