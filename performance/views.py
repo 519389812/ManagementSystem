@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, reverse, redirect
 from django.conf import settings
 from django.core.paginator import Paginator
-from performance.models import Position, RewardRecord, WorkloadRecord, Level, Shift
+from performance.models import Position, WorkloadRecord, Level, Output, OutputRecord
 from team.models import Team
 from user.views import check_authority, check_grouping
 from ManagementSystem.views import parse_url_param
@@ -236,5 +236,65 @@ def view_workload(request):
                                                       "total_workload": paginator.count,
                                                       "total_page_num": paginator.num_pages,
                                                       "page_num": page.number})
+    else:
+        return render(request, "error_500.html", status=500)
+
+
+@check_authority
+@check_grouping
+def add_output(request):
+    if request.user.team.parent:
+        team_id = request.user.team.parent.id
+    else:
+        team_id = request.user.team.id
+    team = request.user.team
+    if not request.user.is_superuser:
+        output_list = list(Output.objects.filter(team__in=[team]).values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='产出', team__in=[team]).values('id', 'name'))
+        team_list = list(Team.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)))
+    else:
+        output_list = list(Output.objects.all().values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='产出').values('id', 'name'))
+        team_list = list(Team.objects.all())
+    team_list = [{'id': team.id, 'name': team.get_related_parent_name()} for team in team_list]
+    if request.method == "POST":
+        output_id = request.POST.get("output", "")
+        level_id = request.POST.get("level", "")
+        date = request.POST.get("date", "")
+        quantity = request.POST.get("quantity", "")
+        assigned_team_id = request.POST.get("assigned_team", "")
+        remark = request.POST.get("remark", "")
+        if not all([output_id, date, quantity, assigned_team_id]):
+            return render(request, "error_500.html", status=500)
+        try:
+            date = timezone.datetime.strptime(date, "%Y-%m-%d")
+            output = Output.objects.get(id=int(output_id))
+            level = Level.objects.get(id=int(level_id)) if level_id != "" else None
+            assigned_team = Team.objects.get(id=int(assigned_team_id))
+            OutputRecord.objects.create(user=request.user, date=date, output=output, level=level,
+                                        quantity=float(quantity), assigned_team=assigned_team, remark=remark)
+            msg = "登记成功！您可以继续登记下一条记录！"
+            return render(request, "add_output.html",
+                          {"output_list": output_list, "team_list": team_list, "level_list": level_list,
+                           "output_name": output.name, "assigned_team_name": assigned_team.name, "msg": msg})
+        except:
+            return render(request, "error_500.html", status=500)
+    else:
+        return render(request, "add_output.html", {"output_list": output_list, "team_list": team_list,
+                                                     'level_list': level_list})
+
+
+@check_authority
+def view_output(request):
+    if request.method == "GET":
+        page_num = request.GET.get("page", '1')
+        create_datetime = timezone.localtime(timezone.now()) - timezone.timedelta(days=41)
+        output_list = OutputRecord.objects.filter(user=request.user, created_datetime__gte=create_datetime)
+        paginator = Paginator(output_list, 20)
+        page = paginator.get_page(int(page_num))
+        return render(request, "view_output.html", {"page_output_list": list(page.object_list),
+                                                    "total_output": paginator.count,
+                                                    "total_page_num": paginator.num_pages,
+                                                    "page_num": page.number})
     else:
         return render(request, "error_500.html", status=500)

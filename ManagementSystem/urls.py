@@ -110,5 +110,8 @@ urlpatterns = [
     path('performance/reward_grid', performance_views.reward_grid, name="reward_grid"),
     path('performance/add_workload/', performance_views.add_workload, name="add_workload"),
     path('performance/view_workload/', performance_views.view_workload, name="view_workload"),
+    path('performance/add_output/', performance_views.add_output, name="add_output"),
+    path('performance/view_output/', performance_views.view_output, name="view_output"),
     path('performance/workload_summary_export/', performance_views.workload_summary_export, name="workload_summary_export"),
+    # path('performance/output_summary_export/', performance_views.output_summary_export, name="output_summary_export"),
 ]

@@ -4,7 +4,7 @@
 <head>
     {% load static %}
     {% include "head.html" %}
-    <title>查询工作量</title>
+    <title>查询产出</title>
 </head>
 
 <body>
@@ -18,7 +18,7 @@
 
     <!-- Page Heading/Breadcrumbs -->
     <h1 class="mt-4 mb-3">查询
-        <small>工作量</small>
+        <small>产出</small>
     </h1>
 
     <ol class="breadcrumb">
@@ -28,46 +28,44 @@
     </ol>
 
     <table class="table table-hover">
-        {{ request.user.get_full_name }}的工作量登记记录
+        {{ request.user.get_full_name }}的产量登记记录
         <thead>
             <tr>
                 <th scope="col">记录编号</th>
-                <th scope="col">岗位</th>
+                <th scope="col">产出</th>
                 <th scope="col">程度</th>
-                <th scope="col">开始时间</th>
-                <th scope="col">结束时间</th>
-                <th scope="col">时长</th>
+                <th scope="col">日期</th>
+                <th scope="col">数量</th>
                 <th scope="col">指派</th>
                 <th scope="col">审核状态</th>
                 <th scope="col">审核人</th>
             </tr>
         </thead>
         <tbody>
-            {% for workload in page_workload_list %}
+            {% for output in page_output_list %}
                 <tr>
-                    <th scope="row">{{ workload.id }}</th>
-                    <td>{{ workload.position.name }}</td>
-                    <td>{{ workload.level.name }}</td>
-                    <td>{{ workload.start_datetime }}</td>
-                    <td>{{ workload.end_datetime }}</td>
-                    <td>{{ workload.working_time }}</td>
-                    <td>{{ workload.assigned_team }}</td>
-                    {% if workload.verified == True %}
+                    <th scope="row">{{ output.id }}</th>
+                    <td>{{ output.output.name }}</td>
+                    <td>{{ output.level.name }}</td>
+                    <td>{{ output.date }}</td>
+                    <td>{{ output.quantity }}</td>
+                    <td>{{ output.assigned_team }}</td>
+                    {% if output.verified == True %}
                         <td class="table-success">通过</td>
                     {% else %}
                         <td class="table-danger">未通过</td>
                     {% endif %}
-                    <td>{{ workload.verified_user }}</td>
+                    <td>{{ output.verified_user }}</td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-    共有{{ total_workload }}条记录
+    共有{{ total_output }}条记录
 
     <!-- Pagination -->
     <ul class="pagination justify-content-center">
         <li class="page-item">
-            <a class="page-link" href="{% url 'view_workload' %}?page=1" aria-label="Previous">
+            <a class="page-link" href="{% url 'view_output' %}?page=1" aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
                 <span class="sr-only">首页</span>
             </a>
@@ -76,15 +74,15 @@
             {% for _ in range %}
                 <li class="page-item">
                     {% if page_num == forloop.counter %}
-                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page_num }}" style="pointer-events: none;cursor: default;color:gray;">{{ forloop.counter }}</a>
+                        <a class="page-link" href="{% url 'view_output' %}?page={{ page_num }}" style="pointer-events: none;cursor: default;color:gray;">{{ forloop.counter }}</a>
                     {% else %}
-                        <a class="page-link" href="{% url 'view_workload' %}?page={{ page_num }}">{{ forloop.counter }}</a>
+                        <a class="page-link" href="{% url 'view_output' %}?page={{ page_num }}">{{ forloop.counter }}</a>
                     {% endif %}
                 </li>
             {% endfor %}
         {% endwith %}
         <li class="page-item">
-            <a class="page-link" href="{% url 'view_workload' %}?page={{ total_page_num }}" aria-label="Next">
+            <a class="page-link" href="{% url 'view_output' %}?page={{ total_page_num }}" aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
                 <span class="sr-only">尾页</span>
             </a>

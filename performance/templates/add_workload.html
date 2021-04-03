@@ -22,6 +22,7 @@
 
     <ol class="breadcrumb">
         {% include "route.html" %}
+        {% include "route_performance.html" %}
         <li class="breadcrumb-item active">新增</li>
     </ol>
 
@@ -122,25 +123,6 @@
 
 <!-- Bootstrap core JavaScript -->
 {% include "script.html" %}
-<script>
-$(document).ready(function(){
-    $(function(){
-        $("#submit").click(function(event){
-            var username = $('#username').val();
-            var password = $('#password').val();
-            var username_validate = $('#username_validate').text();
-            var password_validate = $('#password_validate').text();
-            if(username == "" || password == ""){
-                event.preventDefault();
-                alert("输入不能为空！")
-            } else if(username_validate != "" || password_validate != ""){
-                event.preventDefault();
-                alert("输入有误，请检查！")
-            };
-        });
-    });
-});
-</script>
 
 </body>
 

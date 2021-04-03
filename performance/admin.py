@@ -81,7 +81,7 @@ class RuleAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -115,7 +115,7 @@ class LevelTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -128,10 +128,13 @@ class LevelTypeAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         help_texts = {
-            'name': '如需要设置专用于“新增工作量”表的程度项，请将名称设置为“工作量”',
+            'name': '如需要设置专用于“新增工作量”表的程度项，请将名称设置为“工作量”，“产出”同理。',
         }
         kwargs.update({'help_texts': help_texts})
         return super(LevelTypeAdmin, self).get_form(request, obj, **kwargs)
+
+    def get_model_perms(self, request):
+        return return_get_model_perms(self, request)
 
 
 class LevelAdmin(admin.ModelAdmin):
@@ -142,7 +145,7 @@ class LevelAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -161,7 +164,7 @@ class PositionTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -184,7 +187,7 @@ class PositionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -203,7 +206,7 @@ class RewardTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -226,7 +229,7 @@ class RewardAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -246,7 +249,7 @@ class ShiftAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -263,7 +266,7 @@ class ShiftAdmin(admin.ModelAdmin):
 #
 #     def get_queryset(self, request):
 #         qs = super().get_queryset(request)
-#         qs = return_get_queryset_by_team(request, qs, 'team')
+#         qs = return_get_queryset_by_team_regex(request, qs, 'team')
 #         return qs
 #
 #     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -279,7 +282,7 @@ class ShiftAdmin(admin.ModelAdmin):
 #
 #     def get_queryset(self, request):
 #         qs = super().get_queryset(request)
-#         qs = return_get_queryset_by_team(request, qs, 'team')
+#         qs = return_get_queryset_by_team_regex(request, qs, 'team')
 #         return qs
 #
 #     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -294,7 +297,7 @@ class OutputTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -317,7 +320,7 @@ class OutputAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_team_regex(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -375,8 +378,9 @@ class RewardRecordAdmin(admin.ModelAdmin):
                     string = 'obj.reward.rule.%s' % column_name
                     return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
         if obj.level:
-            string = 'obj.level.rule.%s' % column_name
-            return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+            if eval('obj.level.rule.%s' % column_name):
+                string = 'obj.level.rule.%s' % column_name
+                return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
         return return_column
 
     def get_queryset(self, request):
@@ -441,8 +445,8 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'remark', 'created_datetime', 'verified')
     list_editable = ('verified',)
     autocomplete_fields = ['user', 'position', 'level', 'assigned_team']
-    fields = ('id', 'user', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
-    readonly_fields = ('id', 'user', 'created_datetime', 'working_time', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified_user', 'verified_datetime')
+    fields = ('id', 'user', 'position', 'get_position_rule', 'level', 'get_level_rule', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
+    readonly_fields = ('id', 'user', 'created_datetime', 'working_time', 'get_position_rule', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified_user', 'verified_datetime')
     list_filter = (
         ('start_datetime', DateTimeRangeFilter), 'user__team__name',
     )
@@ -458,6 +462,10 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
         return '分数: %s, 工作量: %s, 奖金: %s, 计算工时: %s' % (
             obj.position.score, obj.position.workload, obj.position.bonus, "是" if obj.position.man_hours else "否")
     get_initial_workload.short_description = "基础分值"
+
+    def get_position_rule(self, obj):
+        return obj.position.rule if obj.position.rule else "无"
+    get_position_rule.short_description = "岗位规则"
 
     def get_level_rule(self, obj):
         return obj.level.rule if obj.level else "无"
@@ -496,24 +504,33 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
                     match = eval('count obj.%s.rule.condition' % model_name)
                     if match:
                         string = 'obj.%s.rule.%s' % (model_name, column_name)
-                        return_column = eval('%s * %s %s' % (return_column, half_ceil(working_time), eval(string))) if eval(string) else return_column
+                        return_column = eval('%s * %s %s' % (return_column, working_time, eval(string))) if eval(string) else return_column
                         is_count_time = True
                 else:
                     if count > 0:
                         string = 'obj.%s.rule.%s' % (model_name, column_name)
-                        return_column = eval('%s * %s %s' % (return_column, half_ceil(working_time), eval(string))) if eval(string) else return_column
+                        return_column = eval('%s * %s %s' % (return_column, working_time, eval(string))) if eval(string) else return_column
                         is_count_time = True
             else:
                 if 'obj.%s.rule.%s' % (model_name, column_name):
                     string = 'obj.%s.rule.%s' % (model_name, column_name)
-                    return_column = eval('%s * %s %s' % (return_column, half_ceil(working_time), eval(string))) if eval(string) else return_column
+                    return_column = eval('%s * %s %s' % (return_column, working_time, eval(string))) if eval(string) else return_column
                     is_count_time = True
             if not is_count_time:
-                return_column = eval('%s * %s' % (return_column, half_ceil(working_time)))
+                return_column = eval('%s * %s' % (return_column, working_time))
         if obj.level:
-            string = 'obj.level.rule.%s' % column_name
-            return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
+            if eval('obj.level.rule.%s' % column_name):
+                string = 'obj.level.rule.%s' % column_name
+                return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
         return return_column
+
+    def get_weight_man_hours(self, obj, working_time):
+        if obj.position.rule.man_hours:
+            working_time = eval('%s %s' % (working_time, obj.position.rule.man_hours))
+        if obj.level:
+            if obj.level.rule.man_hours:
+                working_time = eval('%s %s' % (working_time, obj.level.rule.man_hours))
+        return working_time
 
     # def formfield_for_manytomany(self, db_field, request, **kwargs):
     #     if not request.user.is_superuser:
@@ -541,10 +558,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
             self.get_weight_column(obj, 'position', 'workload', working_time)
             self.get_weight_column(obj, 'position', 'bonus', working_time)
             if obj.position.man_hours:
-                if obj.level:
-                    obj.man_hours = eval('%s %s' % (working_time, obj.level.rule.man_hours)) if obj.level.rule.man_hours else working_time
-                else:
-                    obj.man_hours = working_time
+                obj.man_hours = self.get_weight_man_hours(obj, working_time)
             else:
                 obj.man_hours = 0
             verified_before = WorkloadRecord.objects.get(id=obj.id).verified
@@ -588,23 +602,25 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
 
 
 class OutputRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'date', 'output', 'level', 'quantity', 'weight_quantity', 'assigned_team', 'remark')
+    list_display = ('id', 'user', 'date', 'output', 'get_output_rule', 'level', 'get_level_rule', 'quantity', 'weight_quantity', 'assigned_team', 'remark', 'verified')
     fields = ('id', 'user', 'date', 'output', 'get_output_rule', 'level', 'get_level_rule', 'quantity', 'weight_quantity', 'assigned_team', 'remark', 'created_datetime', 'verified', 'verified_user', 'verified_datetime')
+    list_editable = ('verified',)
     list_display_links = ('user',)
     autocomplete_fields = ['user', 'output', 'level', 'assigned_team']
-    readonly_fields = ('id', 'user', 'weight_quantity', 'created_datetime', 'verified_user', 'verified_datetime')
+    readonly_fields = ('id', 'user', 'get_output_rule', 'get_level_rule', 'weight_quantity', 'created_datetime', 'verified_user', 'verified_datetime')
     list_filter = (
         ('date', DateRangeFilter), 'user__team'
     )
 
     def get_output_rule(self, obj):
         return obj.output.rule if obj.output.rule else "无"
-    get_output_rule.short_description = "奖惩规则"
+    get_output_rule.short_description = "产出规则"
 
     # def get_reference(self, obj):
     #     return ' '.join([i.name for i in obj.reference.all()])
     # get_reference.short_description = "影响"
 
+    # 必须加入到readonly_fields内，否则会报错
     def get_level_rule(self, obj):
         return obj.level.rule if obj.level else "无"
     get_level_rule.short_description = "程度规则"

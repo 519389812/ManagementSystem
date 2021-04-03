@@ -240,7 +240,7 @@ class Output(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.ForeignKey(OutputType, on_delete=models.CASCADE, verbose_name="产出类别")
     name = models.CharField(max_length=100, verbose_name="产出名称")
-    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, verbose_name="规则")
+    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True, verbose_name="规则")
     team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
     class Meta:
@@ -275,7 +275,7 @@ class OutputRecord(models.Model):
         return str(self.id)
 
 
-class OutputSummary(WorkloadRecord):
+class OutputSummary(OutputRecord):
 
     class Meta:
         proxy = True
