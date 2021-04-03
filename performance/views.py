@@ -187,13 +187,13 @@ def add_workload(request):
         team_id = request.user.team.id
     team = request.user.team
     if not request.user.is_superuser:
-        position_list = list(Position.objects.filter(team__in=[team]).values("id", "name"))
-        level_list = list(Level.objects.filter(type__name='工作量', team__in=[team]).values('id', 'name'))
-        team_list = list(Team.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)))
+        position_list = list(Position.objects.filter(team__in=[team]).order_by('name').values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='工作量', team__in=[team]).order_by('name').values('id', 'name'))
+        team_list = list(Team.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)).order_by('name'))
     else:
-        position_list = list(Position.objects.all().values("id", "name"))
-        level_list = list(Level.objects.filter(type__name='工作量').values('id', 'name'))
-        team_list = list(Team.objects.all())
+        position_list = list(Position.objects.all().order_by('name').values("id", "name"))
+        level_list = list(Level.objects.filter(type__name='工作量').order_by('name').values('id', 'name'))
+        team_list = list(Team.objects.all().order_by('name'))
     team_list = [{'id': team.id, 'name': team.get_related_parent_name()} for team in team_list]
     if request.method == "POST":
         position_id = request.POST.get("position", "")

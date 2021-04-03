@@ -339,7 +339,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
     autocomplete_fields = ['user', 'reward', 'level']
     readonly_fields = ('id', 'user', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
     list_filter = (
-        ('date', DateRangeFilter), 'reward__type', 'user__team'
+        ('date', DateRangeFilter), 'user__team', 'reward__type', 'reward'
     )
 
     def get_reward_rule(self, obj):
@@ -415,7 +415,7 @@ class RewardSummaryAdmin(admin.ModelAdmin):
     change_list_template = "admin/reward_summary_change_list.html"
 
     list_filter = (
-        ('date', DateTimeRangeFilter), 'reward__type', 'user__team'
+        ('date', DateTimeRangeFilter), 'user__team', 'reward__type', 'reward'
     )
 
     def get_queryset(self, request):
@@ -448,7 +448,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
     fields = ('id', 'user', 'position', 'get_position_rule', 'level', 'get_level_rule', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
     readonly_fields = ('id', 'user', 'created_datetime', 'working_time', 'get_position_rule', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified_user', 'verified_datetime')
     list_filter = (
-        ('start_datetime', DateTimeRangeFilter), 'position__type', 'assigned_team'
+        ('start_datetime', DateTimeRangeFilter), 'assigned_team', 'position__type', 'position'
     )
 
     def get_form(self, request, obj=None, **kwargs):
@@ -570,8 +570,7 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
     change_list_template = "admin/workload_summary_change_list.html"
 
     list_filter = (
-        ('start_datetime', DateTimeRangeFilter),
-        'position__type', 'user__team'
+        ('start_datetime', DateTimeRangeFilter), 'user__team', 'position__type', 'position'
     )
 
     def get_queryset(self, request):
@@ -606,7 +605,7 @@ class OutputRecordAdmin(admin.ModelAdmin):
     autocomplete_fields = ['user', 'output', 'level', 'assigned_team']
     readonly_fields = ('id', 'user', 'get_output_rule', 'get_level_rule', 'weight_quantity', 'created_datetime', 'verified_user', 'verified_datetime')
     list_filter = (
-        ('date', DateRangeFilter), 'assigned_team', 'output', 'output__type'
+        ('date', DateRangeFilter), 'assigned_team', 'output__type', 'output'
     )
 
     def get_output_rule(self, obj):
@@ -676,7 +675,7 @@ class OutputSummaryAdmin(admin.ModelAdmin):
     change_list_template = "admin/reward_summary_change_list.html"
 
     list_filter = (
-        ('date', DateTimeRangeFilter), 'output__type', 'output', 'user__team'
+        ('date', DateTimeRangeFilter), 'user__team', 'output__type', 'output'
     )
 
     def get_queryset(self, request):
