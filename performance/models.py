@@ -183,7 +183,7 @@ class RewardSummary(RewardRecord):
 
     class Meta:
         proxy = True
-        verbose_name = '奖惩记录'
+        verbose_name = '奖惩统计'
         verbose_name_plural = "             奖惩统计"
 
 

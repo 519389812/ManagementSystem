@@ -516,8 +516,8 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
                     string = 'obj.%s.rule.%s' % (model_name, column_name)
                     return_column = eval('%s * %s %s' % (return_column, working_time, eval(string))) if eval(string) else return_column
                     is_count_time = True
-            if not is_count_time:
-                return_column = eval('%s * %s' % (return_column, working_time))
+        if not is_count_time:
+            return_column = eval('%s * %s' % (return_column, working_time))
         if obj.level:
             if eval('obj.level.rule.%s' % column_name):
                 string = 'obj.level.rule.%s' % column_name
