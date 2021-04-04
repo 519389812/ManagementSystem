@@ -99,7 +99,7 @@ class TeamAdmin(admin.ModelAdmin):
                         related_parent = self.get_related_parent(parent, related_parent)
                         self.change_included_related_parent(obj.id, related_parent)
                         obj.related_parent = json.dumps(related_parent)
-                        super().save_model(request, obj, form, change)
+                super().save_model(request, obj, form, change)
 
 
 admin.site.register(Team, TeamAdmin)
