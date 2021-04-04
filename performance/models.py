@@ -54,6 +54,17 @@ class LevelType(models.Model):
     name = models.CharField(max_length=100, verbose_name="程度类别名称")
     team = models.ManyToManyField(Team, blank=True, verbose_name="目标组")
 
+    def __init__(self, *args, **kwargs):
+        super(LevelType, self).__init__(*args, **kwargs)
+        level_type_choices = []
+        for model in list(apps.get_app_config('performance').get_models()):
+            try:
+                model._meta.get_field('level')
+                level_type_choices.append((model._meta.model_name, model._meta.verbose_name))
+            except:
+                pass
+        self._meta.get_field('name').choices = level_type_choices
+
     class Meta:
         verbose_name = '程度类别'
         verbose_name_plural = "  程度类别"
@@ -207,8 +218,8 @@ class WorkloadRecord(models.Model):
     verified_datetime = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
 
     class Meta:
-        verbose_name = '工作量记录'
-        verbose_name_plural = "              工作量记录"
+        verbose_name = '工作安排记录'
+        verbose_name_plural = "              工作安排记录"
         ordering = ["-created_datetime"]
 
     def __str__(self):
@@ -219,8 +230,8 @@ class WorkloadSummary(WorkloadRecord):
 
     class Meta:
         proxy = True
-        verbose_name = '工作量统计'
-        verbose_name_plural = "              工作量统计"
+        verbose_name = '工作安排统计'
+        verbose_name_plural = "              工作安排统计"
 
 
 class OutputType(models.Model):

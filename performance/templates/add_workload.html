@@ -39,11 +39,11 @@
                         <label>岗位:</label>
                         <select class="form-control" id="position" name="position">
                             {% for position in position_list %}
-                                {% if position.name == position_name %}
-                                    <option selected value="{{ position.id }}">{{ position.name }}</option>
-                                {% else %}
-                                    <option value="{{ position.id }}">{{ position.name }}</option>
-                                {% endif %}
+                            {% if position.name == position_name %}
+                            <option selected value="{{ position.id }}">{{ position.name }}</option>
+                            {% else %}
+                            <option value="{{ position.id }}">{{ position.name }}</option>
+                            {% endif %}
                             {% endfor %}
                         </select>
                         <p class="help-block" id="position_validate"></p>
@@ -55,7 +55,7 @@
                         <select class="form-control" id="level" name="level">
                             <option selected value="">无</option>
                             {% for level in level_list %}
-                                <option value="{{ level.id }}">{{ level.name }}</option>
+                            <option value="{{ level.id }}">{{ level.name }}</option>
                             {% endfor %}
                         </select>
                         <p class="help-block" id="level_validate"></p>
@@ -64,7 +64,8 @@
                 <div class="control-group form-group">
                     <div class="controls">
                         <label>开始时间:</label>
-                        <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" placeholder="请选择开始时间"
+                        <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime"
+                               placeholder="请选择开始时间"
                                required data-validation-required-message="Please enter start datetime.">
                         <p class="help-block" id="start_datetime_validate"></p>
                     </div>
@@ -72,7 +73,8 @@
                 <div class="control-group form-group">
                     <div class="controls">
                         <label>结束时间:</label>
-                        <input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime" placeholder="请选择结束时间"
+                        <input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime"
+                               placeholder="请选择结束时间"
                                required data-validation-required-message="Please enter end datetime.">
                         <p class="help-block" id="end_datetime_validate"></p>
                     </div>
@@ -82,11 +84,11 @@
                         <label>审核室:</label>
                         <select class="form-control" id="assigned_team" name="assigned_team">
                             {% for team in team_list %}
-                                {% if team.name == assigned_team_name %}
-                                    <option selected value="{{ team.id }}">{{ team.name }}</option>
-                                {% else %}
-                                    <option value="{{ team.id }}">{{ team.name }}</option>
-                                {% endif %}
+                            {% if team.name == assigned_team_name %}
+                            <option selected value="{{ team.id }}">{{ team.name }}</option>
+                            {% else %}
+                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endif %}
                             {% endfor %}
                         </select>
                         <p class="help-block" id="assigned_team_validate"></p>
@@ -161,6 +163,42 @@ $(document).ready(function(){
         }
     });
 })
+
+$.fn.setNow = function (onlyBlank) {
+  var now = new Date($.now())
+    , year
+    , month
+    , date
+    , hours
+    , minutes
+    , seconds
+    , formattedDateTime
+    ;
+
+  year = now.getFullYear();
+  month = now.getMonth().toString().length === 1 ? '0' + (now.getMonth() + 1).toString() : now.getMonth() + 1;
+  date = now.getDate().toString().length === 1 ? '0' + (now.getDate()).toString() : now.getDate();
+  hours = now.getHours().toString().length === 1 ? '0' + now.getHours().toString() : now.getHours();
+  minutes = now.getMinutes().toString().length === 1 ? '0' + now.getMinutes().toString() : now.getMinutes();
+  seconds = now.getSeconds().toString().length === 1 ? '0' + now.getSeconds().toString() : now.getSeconds();
+
+  formattedDateTime = year + '-' + month + '-' + date + 'T' + hours + ':' + minutes;
+
+  if ( onlyBlank === true && $(this).val() ) {
+    return this;
+  }
+
+  $(this).val(formattedDateTime);
+
+  return this;
+}
+
+$(function () {
+    // Handler for .ready() called.
+    $('input[type="datetime-local"]').setNow();
+
+});
+
 </script>
 
 </body>
