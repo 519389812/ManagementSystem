@@ -293,7 +293,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'date', 'reward', 'level', 'title', 'score', 'workload', 'bonus')
     fields = ('id', 'user', 'date', 'reward', 'get_reward_rule', 'level', 'get_level_rule', 'title', 'content', 'score', 'workload', 'bonus', 'created_datetime', 'created_user')
     list_display_links = ('user',)
-    search_fields = ('user',)
+    search_fields = ('user__last_name', 'user__first_name')
     autocomplete_fields = ['user', 'reward']
     readonly_fields = ('id', 'user', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
     list_filter = (
@@ -393,7 +393,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'remark', 'created_datetime', 'verified')
     list_editable = ('verified',)
     autocomplete_fields = ['user', 'position', 'assigned_team']
-    search_fields = ('user',)
+    search_fields = ('user__last_name', 'user__first_name')
     fields = ('id', 'user', 'position', 'get_position_rule', 'level', 'get_level_rule', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
     readonly_fields = ('id', 'user', 'created_datetime', 'working_time', 'get_position_rule', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified_user', 'verified_datetime')
     list_filter = (
@@ -533,7 +533,7 @@ class OutputRecordAdmin(admin.ModelAdmin):
     fields = ('id', 'user', 'date', 'output', 'get_output_rule', 'level', 'get_level_rule', 'quantity', 'weight_quantity', 'assigned_team', 'remark', 'created_datetime', 'verified', 'verified_user', 'verified_datetime')
     list_editable = ('verified',)
     list_display_links = ('user',)
-    search_fields = ('user',)
+    search_fields = ('user__last_name', 'user__first_name')
     autocomplete_fields = ['user', 'output', 'assigned_team']
     readonly_fields = ('id', 'user', 'get_output_rule', 'get_level_rule', 'weight_quantity', 'created_datetime', 'verified_user', 'verified_datetime')
     list_filter = (
