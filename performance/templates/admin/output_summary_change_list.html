@@ -33,7 +33,7 @@
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ row.user__last_name }}{{ row.user__first_name }}</td>
                         <td>{{ row.count }}</td>
-                        <td>{{ row.quantity }}</td>
+                        <td>{{ row.weight_quantity }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -45,5 +45,5 @@
     <hr><br>
     <p style="color:gray">{{ summary | length }} 产出统计记录</p>
     <hr><br>
-    <a class="btn btn-xs btn-primary" href="{% url 'output_grid' %}"><input name="output_grid" type="button" id="output_grid" value="可视化统计图表(制作中)" disabled></a>
+    <a class="btn btn-xs btn-primary" href="{% url 'output_charts' %}"><input name="output_charts" type="button" id="output_charts" value="可视化统计图表(测试)"></a>
 {% endblock %}

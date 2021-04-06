@@ -216,7 +216,7 @@ class RewardAdmin(admin.ModelAdmin):
     list_display = ('type', 'name', 'score', 'workload', 'bonus', 'rule')
     filter_horizontal = ('team',)
     search_fields = ('name',)
-    autocomplete_fields = ['type']
+    # autocomplete_fields = ['type']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -273,7 +273,6 @@ class OutputAdmin(admin.ModelAdmin):
     list_display = ('name', 'rule')
     filter_horizontal = ('team',)
     search_fields = ('name',)
-    autocomplete_fields = ['type']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -294,8 +293,8 @@ class RewardRecordAdmin(admin.ModelAdmin):
     fields = ('id', 'user', 'date', 'reward', 'get_reward_rule', 'level', 'get_level_rule', 'title', 'content', 'score', 'workload', 'bonus', 'created_datetime', 'created_user')
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'user__first_name')
-    autocomplete_fields = ['user', 'reward']
-    readonly_fields = ('id', 'user', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
+    autocomplete_fields = ['user']
+    readonly_fields = ('id', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
     list_filter = (
         ('date', DateRangeFilter), 'user__team', 'reward__type', 'reward'
     )
@@ -534,7 +533,6 @@ class OutputRecordAdmin(admin.ModelAdmin):
     list_editable = ('verified',)
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'user__first_name')
-    autocomplete_fields = ['user', 'output', 'assigned_team']
     readonly_fields = ('id', 'user', 'get_output_rule', 'get_level_rule', 'weight_quantity', 'created_datetime', 'verified_user', 'verified_datetime')
     list_filter = (
         ('date', DateRangeFilter), 'assigned_team', 'output__type', 'output', 'verified'
@@ -550,17 +548,17 @@ class OutputRecordAdmin(admin.ModelAdmin):
     get_level_rule.short_description = "程度规则"
 
     def get_weight_column(self, obj, column_name):
-        return_column = eval('obj.output.%s' % column_name)
-        if obj.reward.rule:
-            if obj.reward.rule.date_condition:
+        return_column = eval('obj.%s' % column_name)
+        if obj.output.rule:
+            if obj.output.rule.date_condition:
                 end_date = obj.date
-                date_delta = int(re.findall(r'\d+', obj.reward.rule.date_condition)[0])
+                date_delta = int(re.findall(r'\d+', obj.output.rule.date_condition)[0])
                 start_date = end_date - timezone.timedelta(date_delta)
-                count = RewardRecord.objects.filter(user=obj.user, date__gte=start_date, date__lte=end_date).count()
+                count = OutputRecord.objects.filter(user=obj.user, date__gte=start_date, date__lte=end_date).count()
             else:
-                count = RewardRecord.objects.filter(user=obj.user).count()
-            if obj.reward.rule.condition:
-                match = eval('count %s' % obj.reward.rule.condition)
+                count = OutputRecord.objects.filter(user=obj.user).count()
+            if obj.output.rule.condition:
+                match = eval('count %s' % obj.output.rule.condition)
                 if match:
                     string = 'obj.output.rule.%s' % column_name
                     return_column = eval('%s %s' % (return_column, eval(string))) if eval(string) else return_column
@@ -585,12 +583,12 @@ class OutputRecordAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if form.is_valid():
             obj.weight_quantity = round(self.get_weight_column(obj, 'quantity'), 2)
-            obj.created_user = request.user
+            obj.user = request.user
             super().save_model(request, obj, form, change)
 
 
 class OutputSummaryAdmin(admin.ModelAdmin):
-    change_list_template = "admin/reward_summary_change_list.html"
+    change_list_template = "admin/output_summary_change_list.html"
 
     list_filter = (
         ('date', DateTimeRangeFilter), 'user__team', 'output__type', 'output'
@@ -612,7 +610,7 @@ class OutputSummaryAdmin(admin.ModelAdmin):
             'weight_quantity': Sum('weight_quantity'),
         }
         response.context_data['summary'] = list(
-            qs.filter(verified=True).values("user__last_name", "user__first_name").annotate(**metrics).order_by('-quantity')
+            qs.filter(verified=True).values("user__last_name", "user__first_name").annotate(**metrics).order_by('-weight_quantity')
         )
         return response
 
