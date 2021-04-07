@@ -32,7 +32,7 @@ def return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs,
     return kwargs
 
 
-def return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, db_field_name, obj, model_name):
+def return_formfield_for_foreignkey_parent_rule(request, db_field, kwargs, db_field_name, obj, model_name):
     if db_field.name == db_field_name:
         if request.user.team.parent:
             kwargs["queryset"] = obj.objects.filter(effect=model_name, team__in=[request.user.team.parent])
@@ -75,7 +75,7 @@ def return_formfield_for_foreignkey_parent_user(request, db_field, kwargs, db_fi
             team_id = request.user.team.parent.id
         else:
             team_id = request.user.team.id
-        kwargs["queryset"] = User.objects.filter(team__related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)).order_by('name')
+        kwargs["queryset"] = User.objects.filter(team__related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)).order_by('last_name')
     return kwargs
 
 
@@ -177,7 +177,8 @@ class LevelAdmin(admin.ModelAdmin):
 
     # 与autocomplete_fields冲突
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'level')
+        kwargs = return_formfield_for_foreignkey_parent(request, db_field, kwargs, 'type', LevelType)
+        kwargs = return_formfield_for_foreignkey_parent_rule(request, db_field, kwargs, 'rule', Rule, 'level')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -215,7 +216,8 @@ class PositionAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'position')
+        kwargs = return_formfield_for_foreignkey_parent(request, db_field, kwargs, 'type', PositionType)
+        kwargs = return_formfield_for_foreignkey_parent_rule(request, db_field, kwargs, 'rule', Rule, 'position')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -253,7 +255,8 @@ class RewardAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'reward')
+        kwargs = return_formfield_for_foreignkey_parent(request, db_field, kwargs, 'type', RewardType)
+        kwargs = return_formfield_for_foreignkey_parent_rule(request, db_field, kwargs, 'rule', Rule, 'reward')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -272,7 +275,7 @@ class ShiftAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'shift')
+        kwargs = return_formfield_for_foreignkey_parent_rule(request, db_field, kwargs, 'rule', Rule, 'shift')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -309,7 +312,8 @@ class OutputAdmin(admin.ModelAdmin):
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'output')
+        kwargs = return_formfield_for_foreignkey_parent(request, db_field, kwargs, 'type', OutputType)
+        kwargs = return_formfield_for_foreignkey_parent_rule(request, db_field, kwargs, 'rule', Rule, 'output')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
