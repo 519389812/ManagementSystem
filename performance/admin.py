@@ -47,12 +47,35 @@ def return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, db_f
             kwargs["queryset"] = obj.objects.filter(type__name=model_name, team__in=[request.user.team.parent])
         else:
             kwargs["queryset"] = obj.objects.filter(type__name=model_name, team__in=[request.user.team])
-    if db_field.name == "user":
+    return kwargs
+
+
+def return_formfield_for_foreignkey_parent(request, db_field, kwargs, db_field_name, obj):
+    if db_field.name == db_field_name:
+        if request.user.team.parent:
+            kwargs["queryset"] = obj.objects.filter(team__in=[request.user.team.parent])
+        else:
+            kwargs["queryset"] = obj.objects.filter(team__in=[request.user.team])
+    return kwargs
+
+
+def return_formfield_for_foreignkey_parent_team(request, db_field, kwargs, db_field_name):
+    if db_field.name == db_field_name:
         if request.user.team.parent:
             team_id = request.user.team.parent.id
         else:
             team_id = request.user.team.id
-        kwargs["queryset"] = User.objects.filter(team__related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id))
+        kwargs["queryset"] = Team.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)).order_by('name')
+    return kwargs
+
+
+def return_formfield_for_foreignkey_parent_user(request, db_field, kwargs, db_field_name):
+    if db_field.name == db_field_name:
+        if request.user.team.parent:
+            team_id = request.user.team.parent.id
+        else:
+            team_id = request.user.team.id
+        kwargs["queryset"] = User.objects.filter(team__related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id)).order_by('name')
     return kwargs
 
 
@@ -353,6 +376,8 @@ class RewardRecordAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, 'level', Level, 'rewarkrecord')
+        kwargs = return_formfield_for_foreignkey_parent_user(request, db_field, kwargs, 'user')
+        kwargs = return_formfield_for_foreignkey_parent(request, db_field, kwargs, 'reward', Reward)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -477,6 +502,9 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, 'level', Level, 'workloadrecord')
+        kwargs = return_formfield_for_foreignkey_parent_user(request, db_field, kwargs, 'user')
+        kwargs = return_formfield_for_foreignkey_parent(request, db_field, kwargs, 'position', Position)
+        kwargs = return_formfield_for_foreignkey_parent_team(request, db_field, kwargs, 'assigned_team')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -584,6 +612,9 @@ class OutputRecordAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         kwargs = return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, 'level', Level, 'outputrecord')
+        kwargs = return_formfield_for_foreignkey_parent_user(request, db_field, kwargs, 'user')
+        kwargs = return_formfield_for_foreignkey_parent(request, db_field, kwargs, 'output', Output)
+        kwargs = return_formfield_for_foreignkey_parent_team(request, db_field, kwargs, 'assigned_team')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
