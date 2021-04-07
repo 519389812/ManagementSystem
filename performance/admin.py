@@ -1,6 +1,7 @@
 from django.contrib import admin
 from performance.models import LevelType, Level, Rule, PositionType, Position, RewardType, Reward, Shift, RewardRecord, RewardSummary, WorkloadRecord, WorkloadSummary, OutputType, Output, OutputRecord, OutputSummary
 from team.models import Team
+from user.models import User
 from django.contrib.admin import widgets
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from django.db.models import Count, Sum, DateTimeField, DateField, Min, Max, Avg, F, ExpressionWrapper, fields, Value, Func
@@ -51,7 +52,7 @@ def return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, db_f
             team_id = request.user.team.parent.id
         else:
             team_id = request.user.team.id
-        kwargs["queryset"] = obj.objects.filter(team__related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id))
+        kwargs["queryset"] = User.objects.filter(team__related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id))
     return kwargs
 
 
