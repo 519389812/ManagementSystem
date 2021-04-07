@@ -46,6 +46,12 @@ def return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, db_f
             kwargs["queryset"] = obj.objects.filter(type__name=model_name, team__in=[request.user.team.parent])
         else:
             kwargs["queryset"] = obj.objects.filter(type__name=model_name, team__in=[request.user.team])
+    if db_field.name == "user":
+        if request.user.team.parent:
+            team_id = request.user.team.parent.id
+        else:
+            team_id = request.user.team.id
+        kwargs["queryset"] = obj.objects.filter(team__related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id))
     return kwargs
 
 
@@ -55,7 +61,8 @@ def return_get_model_perms(self, request):
             'add': self.has_add_permission(request),
             'change': self.has_change_permission(request),
             'delete': self.has_delete_permission(request),
-            'view': self.has_view_permission(request)}
+            'view': self.has_view_permission(request)
+         }
     else:
         model_perms = {}
     return model_perms
