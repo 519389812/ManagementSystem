@@ -137,7 +137,7 @@ class LevelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'rule')
     filter_horizontal = ('team',)
     search_fields = ('name',)
-    autocomplete_fields = ['type']
+    # autocomplete_fields = ['type']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -176,7 +176,7 @@ class PositionAdmin(admin.ModelAdmin):
     list_display = ('name', 'score', 'workload', 'bonus', 'man_hours', 'rule')
     filter_horizontal = ('team',)
     search_fields = ('name',)
-    autocomplete_fields = ['type']
+    # autocomplete_fields = ['type']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -291,7 +291,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
     fields = ('id', 'user', 'date', 'reward', 'get_reward_rule', 'level', 'get_level_rule', 'title', 'content', 'score', 'workload', 'bonus', 'created_datetime', 'created_user')
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'user__first_name')
-    autocomplete_fields = ['user']
+    # autocomplete_fields = ['user']
     readonly_fields = ('id', 'get_reward_rule', 'get_level_rule', 'created_datetime', 'created_user', 'score', 'workload', 'bonus')
     list_filter = (
         ('date', DateRangeFilter), 'user__team', 'reward__type', 'reward'
@@ -389,7 +389,7 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 class WorkloadRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'position', 'level', 'start_datetime', 'end_datetime', 'assigned_team', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'remark', 'created_datetime', 'verified')
     list_editable = ('verified',)
-    autocomplete_fields = ['user', 'position', 'assigned_team']
+    # autocomplete_fields = ['user', 'position', 'assigned_team']
     search_fields = ('user__last_name', 'user__first_name')
     fields = ('id', 'user', 'position', 'get_position_rule', 'level', 'get_level_rule', 'start_datetime', 'end_datetime', 'assigned_team', 'remark', 'working_time', 'get_initial_workload', 'score', 'workload', 'bonus', 'man_hours', 'verified', 'created_datetime', 'verified_user', 'verified_datetime')
     readonly_fields = ('id', 'user', 'created_datetime', 'working_time', 'get_position_rule', 'get_initial_workload', 'get_level_rule', 'score', 'workload', 'bonus', 'man_hours', 'verified_user', 'verified_datetime')
