@@ -10,26 +10,17 @@ from django.utils import timezone
 import re
 from django.contrib import messages
 import math
-from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_team_regex
+from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_parent_team, return_get_queryset_by_related_team
 
 
-def return_formfield_for_foreignkey_team(request, db_field, kwargs, db_field_name, obj):
-    if not request.user.is_superuser:
-        try:
-            team_id = request.user.team.id
-            if db_field.name == db_field_name:
-                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id))
-        except:
-            pass
-    return kwargs
-
-
-def return_formfield_for_manytomany(self, request, db_field, kwargs, db_field_name, obj):
+def return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, db_field_name, obj):
     if not request.user.is_superuser:
         try:
             if db_field.name == db_field_name:
-                team_id = request.user.team.id
-                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id))
+                if request.user.team.parent:
+                    kwargs["queryset"] = obj.objects.filter(team__in=[request.user.team.parent])
+                else:
+                    kwargs["queryset"] = obj.objects.filter(team__in=[request.user.team])
                 kwargs['widget'] = widgets.FilteredSelectMultiple(
                     db_field.verbose_name,
                     db_field.name in self.filter_vertical
@@ -39,15 +30,21 @@ def return_formfield_for_manytomany(self, request, db_field, kwargs, db_field_na
     return kwargs
 
 
-def return_formfield_for_foreignkey_effect(db_field, kwargs, db_field_name, obj, model_name):
+def return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, db_field_name, obj, model_name):
     if db_field.name == db_field_name:
-        kwargs["queryset"] = obj.objects.filter(effect=model_name)
+        if request.user.team.parent:
+            kwargs["queryset"] = obj.objects.filter(effect=model_name, team__in=[request.user.team.parent])
+        else:
+            kwargs["queryset"] = obj.objects.filter(effect=model_name, team__in=[request.user.team])
     return kwargs
 
 
-def return_formfield_for_foreignkey_level(db_field, kwargs, db_field_name, obj, model_name):
+def return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, db_field_name, obj, model_name):
     if db_field.name == db_field_name:
-        kwargs["queryset"] = obj.objects.filter(type__name=model_name)
+        if request.user.team.parent:
+            kwargs["queryset"] = obj.objects.filter(type__name=model_name, team__in=[request.user.team.parent])
+        else:
+            kwargs["queryset"] = obj.objects.filter(type__name=model_name, team__in=[request.user.team])
     return kwargs
 
 
@@ -87,11 +84,11 @@ class RuleAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super(RuleAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -117,11 +114,11 @@ class LevelTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super(LevelTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_form(self, request, obj=None, **kwargs):
@@ -143,16 +140,16 @@ class LevelAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     # 与autocomplete_fields冲突
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_effect(db_field, kwargs, 'rule', Rule, 'level')
+        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'level')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super(LevelAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
@@ -163,11 +160,11 @@ class PositionTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super(PositionTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_model_perms(self, request):
@@ -182,15 +179,15 @@ class PositionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_effect(db_field, kwargs, 'rule', Rule, 'position')
+        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'position')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
@@ -201,11 +198,11 @@ class RewardTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super(RewardTypeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_model_perms(self, request):
@@ -220,15 +217,15 @@ class RewardAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_effect(db_field, kwargs, 'rule', Rule, 'reward')
+        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'reward')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
@@ -239,15 +236,15 @@ class ShiftAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_effect(db_field, kwargs, 'rule', Rule, 'shift')
+        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'shift')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
@@ -258,11 +255,11 @@ class OutputTypeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_model_perms(self, request):
@@ -276,15 +273,15 @@ class OutputAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_effect(db_field, kwargs, 'rule', Rule, 'output')
+        kwargs = return_formfield_for_foreignkey_parent_effect(request, db_field, kwargs, 'rule', Rule, 'output')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_manytomany(self, request, db_field, kwargs, 'team', Team)
+        kwargs = return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, 'team', Team)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
@@ -342,11 +339,11 @@ class RewardRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'user__team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'user__team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_level(db_field, kwargs, 'level', Level, 'rewarkrecord')
+        kwargs = return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, 'level', Level, 'rewarkrecord')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -367,7 +364,7 @@ class RewardSummaryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'user__team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'user__team')
         return qs
 
     def changelist_view(self, request, extra_context=None):
@@ -421,7 +418,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'assigned_team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'assigned_team')
         return qs
 
     def get_weight_column(self, obj, model_name, column_name, working_time):
@@ -470,7 +467,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
         return working_time
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_level(db_field, kwargs, 'level', Level, 'workloadrecord')
+        kwargs = return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, 'level', Level, 'workloadrecord')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -505,7 +502,7 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'assigned_team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'assigned_team')
         return qs
 
     def changelist_view(self, request, extra_context=None):
@@ -573,11 +570,11 @@ class OutputRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'user__team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'user__team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        kwargs = return_formfield_for_foreignkey_level(db_field, kwargs, 'level', Level, 'outputrecord')
+        kwargs = return_formfield_for_foreignkey_parent_level(request, db_field, kwargs, 'level', Level, 'outputrecord')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -596,7 +593,7 @@ class OutputSummaryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team_regex(request, qs, 'user__team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'user__team')
         return qs
 
     def changelist_view(self, request, extra_context=None):

@@ -2,7 +2,7 @@ from django.contrib import admin
 from document.models import DocxInit, ContentStorage, SignatureStorage
 from document.docx_handler import *
 import json
-from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_team_regex
+from ManagementSystem.admin import return_get_queryset_by_parent_team
 
 
 class DocxInitAdmin(admin.ModelAdmin):
@@ -12,7 +12,7 @@ class DocxInitAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'team')
         return qs
 
     def save_model(self, request, obj, form, change):
@@ -33,7 +33,7 @@ class ContentStorageAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'docx__team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'docx__team')
         return qs
 
 
@@ -47,7 +47,7 @@ class SignatureStorageAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_team(request, qs, 'docx__team')
+        qs = return_get_queryset_by_parent_team(request, qs, 'docx__team')
         return qs
 
 
