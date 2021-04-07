@@ -17,10 +17,8 @@ def return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs,
     if not request.user.is_superuser:
         try:
             if db_field.name == db_field_name:
-                if request.user.team.parent:
-                    kwargs["queryset"] = obj.objects.filter(team__in=[request.user.team.parent])
-                else:
-                    kwargs["queryset"] = obj.objects.filter(team__in=[request.user.team])
+                team_id = request.user.team.id
+                kwargs["queryset"] = obj.objects.filter(related_parent__iregex=r'[^0-9]*%s[^0-9]' % str(team_id))
                 kwargs['widget'] = widgets.FilteredSelectMultiple(
                     db_field.verbose_name,
                     db_field.name in self.filter_vertical
