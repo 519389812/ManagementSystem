@@ -11,7 +11,7 @@ from django.utils import timezone
 import re
 from django.contrib import messages
 import math
-from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_parent_team, return_get_queryset_by_related_team
+from ManagementSystem.admin import return_get_queryset_by_team, return_get_queryset_by_parent_team, return_get_queryset_by_related_team, return_get_queryset_by_parent_team_foreignkey
 
 
 def return_formfield_for_manytomany_parent_team(self, request, db_field, kwargs, db_field_name, obj):
@@ -456,7 +456,7 @@ class WorkloadRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_parent_team(request, qs, 'assigned_team')
+        qs = return_get_queryset_by_parent_team_foreignkey(request, qs, 'user__team')
         return qs
 
     def get_weight_column(self, obj, model_name, column_name, working_time):
@@ -543,7 +543,7 @@ class WorkloadSummaryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_parent_team(request, qs, 'assigned_team')
+        qs = return_get_queryset_by_parent_team_foreignkey(request, qs, 'user__team')
         return qs
 
     def changelist_view(self, request, extra_context=None):
@@ -611,7 +611,7 @@ class OutputRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_parent_team(request, qs, 'user__team')
+        qs = return_get_queryset_by_parent_team_foreignkey(request, qs, 'user__team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -637,7 +637,7 @@ class OutputSummaryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_parent_team(request, qs, 'user__team')
+        qs = return_get_queryset_by_parent_team_foreignkey(request, qs, 'user__team')
         return qs
 
     def changelist_view(self, request, extra_context=None):
