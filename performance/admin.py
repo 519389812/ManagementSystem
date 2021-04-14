@@ -308,7 +308,7 @@ class OutputAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_parent_team(request, qs, 'team')
+        qs = return_get_queryset_by_parent_team_foreignkey(request, qs, 'team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -375,7 +375,7 @@ class RewardRecordAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = return_get_queryset_by_parent_team(request, qs, 'user__team')
+        qs = return_get_queryset_by_parent_team_foreignkey(request, qs, 'user__team')
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
