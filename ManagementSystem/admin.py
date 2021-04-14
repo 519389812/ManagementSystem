@@ -42,7 +42,7 @@ def return_get_queryset_by_parent_team_foreignkey(request, qs, field_name):
                 team_id = request.user.team.parent.id
             else:
                 team_id = request.user.team.id
-            qs = eval("qs.filter(%s__related_parent__iregex=r'[^0-9]*%s[^0-9])" % (field_name, str(team_id)))
+            qs = eval("qs.filter(%s__related_parent__iregex=r'[^0-9]*%s[^0-9]')" % (field_name, str(team_id)))
         except:
             pass
     return qs
