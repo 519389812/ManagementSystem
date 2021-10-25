@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" overflow="hidden">
 <head>
     <meta charset="utf-8">
     {% load static %}
@@ -70,6 +70,11 @@
     function submit() {
       $("#submit").attr("disabled","disabled");
     }
+
+    document.body.addEventListener('touchmove', function (e) {
+      e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
+    }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
+
 </script>
 <script src="{% static 'js/signature_pad.umd.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
